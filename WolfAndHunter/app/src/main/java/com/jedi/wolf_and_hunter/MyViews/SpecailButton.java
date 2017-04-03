@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -117,6 +119,8 @@ public class SpecailButton extends android.support.v7.widget.AppCompatTextView i
         super.onDraw(canvas);
         //绘制控件内容
         setTextLocation(text);
+        Drawable d=getResources().getDrawable(R.drawable.normal_field);
+
         canvas.drawText(text, textCenterX, textBaselineY, paint);
     }
 

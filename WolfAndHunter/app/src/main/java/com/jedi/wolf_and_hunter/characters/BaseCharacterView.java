@@ -151,7 +151,7 @@ public class BaseCharacterView extends SurfaceView {
                 //计算移动的距离
                 offX = x - lastX;
                 offY = y - lastY;
-                movementArr= ViewUtils.reviseViewMovement(this,(View)this.getParent(),offX,offY);
+                movementArr= new ViewUtils().reviseTwoRectViewMovement(this,(View)this.getParent(),offX,offY);
                 nowLeft=movementArr[0];
                 nowTop=movementArr[1];
                 nowRight=movementArr[2];

@@ -20,7 +20,6 @@ public class MapBaseActivity extends Activity {
 //        t.setText("测试");
 //        t.setTextColor(20);
 //        t.setTextSize(500);
-        LinearLayout mapMainLayout = (LinearLayout) findViewById(R.id.linearLayout_map_main);
         MapBaseFrame mapBaseFrame=(MapBaseFrame)findViewById(R.id.map_base_frame);
         LinearLayout.LayoutParams paramsForMapBase = (LinearLayout.LayoutParams)mapBaseFrame.getLayoutParams();
 

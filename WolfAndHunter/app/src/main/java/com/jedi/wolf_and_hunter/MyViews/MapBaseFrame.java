@@ -9,7 +9,6 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
@@ -72,12 +71,12 @@ public class MapBaseFrame extends FrameLayout {
                 //计算移动的距离
                 offX = x - lastX;
                 offY = y - lastY;
-                movementArr= ViewUtils.reviseViewMovement(this,(View)this.getParent(),offX,offY);
-                LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)this.getLayoutParams();
-                params.setMargins(movementArr[0],movementArr[1], movementArr[2], movementArr[3]);
+
+                movementArr= new ViewUtils().reviseTwoRectViewMovement(this,(View)getParent(),offX,offY);
                 layout(movementArr[0],movementArr[1], movementArr[2], movementArr[3]);
         }
         return true;
     }
+
 
 }
