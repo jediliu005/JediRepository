@@ -32,4 +32,11 @@ public class MyMathsUtils {
 
         return 1;
     }
+
+    public static double getDistance(Point a,Point b){
+        if(a!=null&&b!=null ){
+            return Math.sqrt((a.x-b.x)^2+(a.y-b.y)^2);
+        }
+        return 0;
+    }
 }

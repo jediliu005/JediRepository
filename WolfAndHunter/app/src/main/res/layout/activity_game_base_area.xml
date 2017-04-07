@@ -13,7 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#0001FF"
-        />
+        >
+    </com.jedi.wolf_and_hunter.MyViews.MapBaseFrame>
 
 
 

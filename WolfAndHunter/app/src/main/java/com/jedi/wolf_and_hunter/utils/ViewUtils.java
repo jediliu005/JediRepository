@@ -23,6 +23,34 @@ public class ViewUtils {
     }
 
     /**
+     * 次方法仅针对内部移动
+     * @param targetView
+     * @param containerView
+     * @param offX
+     * @return
+     */
+    public static int reviseOffX(View targetView,View containerView,int offX) throws Exception {
+        if(targetView.getWidth()>containerView.getWidth())
+            throw new Exception("reviseOffX(View targetView,View containerView,int offX) 不应处理子控件比父控件大的情况");
+        if(targetView.getLeft()+offX<0)
+            offX=-targetView.getLeft();
+        else if(targetView.getRight()>containerView.getWidth())
+            offX=containerView.getWidth()-targetView.getRight();
+
+        return offX;
+    }
+    public static int reviseOffY(View targetView,View containerView,int offY) throws Exception {
+        if(targetView.getHeight()>containerView.getHeight())
+            throw new Exception("reviseOffY(View targetView,View containerView,int offY) 不应处理子控件比父控件宽的情况");
+        if(targetView.getTop()+offY<0)
+            offY=-targetView.getTop();
+        else if(targetView.getBottom()>containerView.getHeight())
+            offY=containerView.getHeight()-targetView.getBottom();
+
+        return offY;
+    }
+
+    /**
      * @param targetView
      * @param containerView
      * @param offX
