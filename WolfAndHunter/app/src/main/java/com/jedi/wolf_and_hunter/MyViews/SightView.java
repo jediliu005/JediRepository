@@ -1,4 +1,4 @@
-package com.jedi.wolf_and_hunter.MyViews.characters;
+package com.jedi.wolf_and_hunter.MyViews;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -18,7 +18,6 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.jedi.wolf_and_hunter.MyViews.SightView;
 import com.jedi.wolf_and_hunter.R;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
@@ -26,15 +25,12 @@ import com.jedi.wolf_and_hunter.utils.ViewUtils;
  * Created by Administrator on 2017/3/13.
  */
 
-public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Callback{
-    private static final String TAG = "BaseCharacterView";
+public class SightView extends SurfaceView implements SurfaceHolder.Callback{
+    public static final String TAG = "SurfaceView";
     //以下为移动相关
     public int lastX;
     public int lastY;
     public int offX;
-
-
-
     public int offY;
     public boolean hasChanged=false;
     //以下为角色基本共有属性
@@ -44,43 +40,34 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     public int nowRight;
     public int nowBotton;
     public double directionAngle;
-    public int characterBodySize;
-    public int aroundSize;
     public int speed = 10;
-    public SightView sight;
+    public int sightSize;
     //以下为绘图杂项
     public boolean isStop;
-    public Bitmap arrowBitMap;
+    public Bitmap sightBitmap;
     public Matrix matrix;
     public SurfaceHolder mHolder;
-    public int arrowBitmapWidth;
-    public int arrowBitmapHeight;
+    public int sightBitmapWidth;
+    public int sightBitmapHeight;
     public FrameLayout.LayoutParams mLayoutParams;
     Paint paint;
 
-    public FrameLayout.LayoutParams getmLayoutParams() {
-        return mLayoutParams;
-    }
 
-    public void setmLayoutParams(FrameLayout.LayoutParams mLayoutParams) {
-        this.mLayoutParams = mLayoutParams;
-    }
-
-    public BaseCharacterView(Context context) {
+    public SightView(Context context) {
         super(context);
         init();
     }
-    public BaseCharacterView(Context context, AttributeSet attrs) {
+    public SightView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public BaseCharacterView(Context context, AttributeSet attrs, int defStyle) {
+    public SightView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init();
     }
     private void init(){
-        characterBodySize=200;
+        sightSize=100;
         getHolder().addCallback(this);
         mHolder=getHolder();
         mHolder.addCallback(this);
@@ -191,35 +178,30 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
 
-//        setFocusable(true);
-//        setFocusableInTouchMode(true);
-//        setZOrderOnTop(true);
-//        holder.setFormat(PixelFormat.TRANSLUCENT);
         paint=new Paint();
         paint.setColor(Color.WHITE);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(10);
         paint.setAntiAlias(true);
-        arrowBitMap= BitmapFactory.decodeResource(getResources(), R.drawable.arrow);
+        sightBitmap= BitmapFactory.decodeResource(getResources(), R.drawable.aim64);
         matrix = new Matrix();
 //         缩放原图
-        matrix.postScale(0.3f, 0.3f);
-        arrowBitMap=Bitmap.createBitmap(arrowBitMap, 0, 0, arrowBitMap.getWidth(), arrowBitMap.getHeight(),
+        matrix.postScale((float)sightSize/sightBitmap.getWidth(), (float)sightSize/sightBitmap.getHeight());
+        sightBitmap=Bitmap.createBitmap(sightBitmap, 0, 0, sightBitmap.getWidth(), sightBitmap.getHeight(),
                 matrix, true);
-        arrowBitmapHeight=arrowBitMap.getHeight();
-        arrowBitmapWidth= arrowBitMap.getHeight();
+        sightBitmapHeight=sightBitmap.getHeight();
+        sightBitmapWidth= sightBitmap.getHeight();
         mLayoutParams = ( FrameLayout.LayoutParams)this.getLayoutParams();
 
-        aroundSize=2*arrowBitmapWidth;
 
-        mLayoutParams.height=characterBodySize+aroundSize;
-        mLayoutParams.width=characterBodySize+aroundSize;
+        mLayoutParams.height=sightBitmapHeight;
+        mLayoutParams.width=sightBitmapWidth;
         this.setLayoutParams(mLayoutParams);
-        Thread drawThread=new Thread(new CharacterDraw());
+        Thread drawThread=new Thread(new SightDraw());
         drawThread.start();
     }
 
-    class CharacterDraw implements Runnable{
+    class SightDraw implements Runnable{
 
 
 
@@ -232,8 +214,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
                 Canvas canvas=getHolder().lockCanvas();
                 try {
                     canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//清除屏幕
-                    canvas.drawCircle((characterBodySize+aroundSize)/2,(characterBodySize+aroundSize)/2,characterBodySize/2,paint);
-                    canvas.drawBitmap(arrowBitMap,characterBodySize+aroundSize/2,(characterBodySize+aroundSize-arrowBitmapHeight)/2,null);
+                    canvas.drawBitmap(sightBitmap,0,0,null);
 
                 } catch (Exception e) {
                     e.printStackTrace();

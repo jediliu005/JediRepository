@@ -34,7 +34,7 @@ public class ViewUtils {
             throw new Exception("reviseOffX(View targetView,View containerView,int offX) 不应处理子控件比父控件大的情况");
         if(targetView.getLeft()+offX<0)
             offX=-targetView.getLeft();
-        else if(targetView.getRight()>containerView.getWidth())
+        else if(targetView.getRight()+offX>containerView.getWidth())
             offX=containerView.getWidth()-targetView.getRight();
 
         return offX;
@@ -44,7 +44,7 @@ public class ViewUtils {
             throw new Exception("reviseOffY(View targetView,View containerView,int offY) 不应处理子控件比父控件宽的情况");
         if(targetView.getTop()+offY<0)
             offY=-targetView.getTop();
-        else if(targetView.getBottom()>containerView.getHeight())
+        else if(targetView.getBottom()+offY>containerView.getHeight())
             offY=containerView.getHeight()-targetView.getBottom();
 
         return offY;

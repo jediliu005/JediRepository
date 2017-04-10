@@ -35,7 +35,9 @@ public class MyMathsUtils {
 
     public static double getDistance(Point a,Point b){
         if(a!=null&&b!=null ){
-            return Math.sqrt((a.x-b.x)^2+(a.y-b.y)^2);
+            int dx=a.x-b.x;
+            int dy=a.y-b.y;
+            return Math.sqrt(dx*dx+dy*dy);
         }
         return 0;
     }

@@ -8,8 +8,6 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
-import android.os.Bundle;
-import android.os.Message;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -17,6 +15,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
 
+import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
 import com.jedi.wolf_and_hunter.R;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
 import com.jedi.wolf_and_hunter.utils.MyMathsUtils;
@@ -27,18 +26,23 @@ import com.jedi.wolf_and_hunter.utils.ViewUtils;
  */
 
 public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
-    static final int ROCKER_TYPE_LEFT=1;
-    static final int ROCKER_TYPE_RIGHT=2;
-    int rockerType;
+    BaseCharacterView bindingCharacter;
     public GameBaseAreaActivity.GameHandler gameHandler;
-    JRocker jRocker;
     Point padCircleCenter=new Point();
     Point rockerCircleCenter=new Point();
+
+    public BaseCharacterView getBindingCharacter() {
+        return bindingCharacter;
+    }
+
+    public void setBindingCharacter(BaseCharacterView bindingCharacter) {
+        this.bindingCharacter = bindingCharacter;
+    }
+
     int windowWidth;
     int windowHeight;
     int padRadius;
     int rockerRadius;
-    float radian=-100;
     double distance=0;
     Paint paintForPad;
     Paint paintForRocker;
@@ -100,13 +104,13 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        jRocker=this;
+
         isStop=false;
 
         setFocusable(true);
         setFocusableInTouchMode(true);
 
-        FrameLayout.LayoutParams paramsForJRocker = ( FrameLayout.LayoutParams)jRocker.getLayoutParams();
+        FrameLayout.LayoutParams paramsForJRocker = ( FrameLayout.LayoutParams)getLayoutParams();
         paramsForJRocker.height=(int)(2*padRadius+2*rockerRadius);
         paramsForJRocker.width=(int)(2*padRadius+2*rockerRadius);
         //在这里，新版系统必须重新setLayoutParams才能成功调整,19不用，还是要加。。。
@@ -114,9 +118,7 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
         DrawRocker drawLeftRocker=new DrawRocker();
         Thread drawThread=new Thread(drawLeftRocker);
         drawThread.start();
-        ReactToCharacter reactToCharacter=new ReactToCharacter();
-        Thread reactThread=new Thread(reactToCharacter);
-        reactThread.start();
+
 
     }
 
@@ -128,8 +130,7 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
         @Override
         public void run() {
             Canvas canvas = null;
-            jRocker.getX();
-            jRocker.getY();
+
 
             while (!isStop) {
                 try {
@@ -148,7 +149,7 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
                         mHolder.unlockCanvasAndPost(canvas);
                     }
                     try {
-                        Thread.sleep(30);
+                        Thread.sleep(20);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -158,37 +159,7 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    class ReactToCharacter implements Runnable{
 
-
-
-        @Override
-        public void run() {
-
-
-            while (!isStop) {
-                if(distance==0&&radian==-100){
-                    try {
-                        Thread.sleep(30);
-                        continue;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                Message msg=gameHandler.obtainMessage();
-                msg.what= GameBaseAreaActivity.GameHandler.FROM_ROCKER_LEFT;
-                msg.getData().putDouble("moveDis",distance);
-                msg.getData().putInt("relateX",rockerCircleCenter.x-padCircleCenter.x);
-                msg.getData().putInt("relateY",rockerCircleCenter.y-padCircleCenter.y);
-                msg.sendToTarget();
-                try {
-                    Thread.sleep(30);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
 
 
 
@@ -209,7 +180,9 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
                     isHoldRocker=false;
                     distance=0;
                     rockerCircleCenter.set(padCircleCenter.x,padCircleCenter.y);
-
+                    bindingCharacter.hasChanged=false;
+                    bindingCharacter.offX=0;
+                    bindingCharacter.offY=0;
                     break;
 
                 case MotionEvent.ACTION_MOVE:
@@ -223,8 +196,10 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
 //                    Point toPoint=new Point(newRockerX,newRockerY);
                     rockerCircleCenter= new ViewUtils().revisePointInCircleViewMovement(padCircleCenter,padRadius,new Point(x,y));
                     distance= MyMathsUtils.getDistance(rockerCircleCenter,padCircleCenter);
+                    bindingCharacter.hasChanged=true;
 
             }
+
             return true;
         }
 
@@ -236,6 +211,7 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+
         isStop=true;
     }
 }

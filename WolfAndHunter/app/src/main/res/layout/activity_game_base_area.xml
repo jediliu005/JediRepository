@@ -18,13 +18,13 @@
 
 
 
-    <com.jedi.wolf_and_hunter.MyViews.JRocker
+    <com.jedi.wolf_and_hunter.MyViews.LeftRocker
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/rocker_left"
         android:layout_gravity="bottom|left"
         />
-    <com.jedi.wolf_and_hunter.MyViews.JRocker
+    <com.jedi.wolf_and_hunter.MyViews.RightRocker
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/rocker_right"
