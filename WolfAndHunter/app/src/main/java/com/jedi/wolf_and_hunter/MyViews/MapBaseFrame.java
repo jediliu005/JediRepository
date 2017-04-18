@@ -21,7 +21,7 @@ import com.jedi.wolf_and_hunter.utils.ViewUtils;
 public class MapBaseFrame extends FrameLayout {
     private int lastX;
     private int lastY;
-    private String myText;
+    public SightView mySight;
 
     public MapBaseFrame(@NonNull Context context) {
         super(context);
@@ -83,6 +83,12 @@ public class MapBaseFrame extends FrameLayout {
 
                 movementArr= new ViewUtils().reviseTwoRectViewMovement(this,(View)getParent(),offX,offY);
                 layout(movementArr[0],movementArr[1], movementArr[2], movementArr[3]);
+//                synchronized (mySight) {
+//                    mySight.windowLeft = - movementArr[0];
+//                    mySight.windowTop = - movementArr[1];
+//                    mySight.windowRight = - movementArr[2];
+//                    mySight.windowBottom = - movementArr[3];
+//                }
         }
         return true;
     }

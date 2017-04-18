@@ -131,7 +131,7 @@ public class ViewUtils {
         return retArr;
     }
 
-    public Point revisePointInCircleViewMovement(Point containerCircleCentre, int containerCircleRadius, Point pointTo) {
+    public Point revisePointInCircleViewMovement(Point containerCircleCentre, int maxDistance, Point pointTo) {
         Point retPoint = new Point();
         int centreX = containerCircleCentre.x;
         int centreY = containerCircleCentre.y;
@@ -142,17 +142,20 @@ public class ViewUtils {
         int retPointX=pointToX;
         int retPointY=pointToY;
 
-        boolean isOut = relateX * relateX + relateY * relateY >containerCircleRadius*containerCircleRadius;
+        boolean isOut = relateX * relateX + relateY * relateY >maxDistance*maxDistance;
         if(isOut){
             double pointCos=relateX/Math.sqrt(relateX*relateX+relateY*relateY);
             double pointSin=relateY/Math.sqrt(relateX*relateX+relateY*relateY);
-            retPointX=(int)(centreX+containerCircleRadius*pointCos);
-            retPointY=(int)(centreY+containerCircleRadius*pointSin);
+            retPointX=(int)(centreX+maxDistance*pointCos);
+            retPointY=(int)(centreY+maxDistance*pointSin);
         }
         retPoint.set(retPointX,retPointY);
         return retPoint;
     }
 
+    public static DisplayMetrics getWindowsDisplayMetrics() {
+        return windowsDisplayMetrics;
+    }
 
     public static void initWindowParams(Context context) {
         if (windowsDisplayMetrics == null) {
@@ -160,6 +163,7 @@ public class ViewUtils {
             WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
             wm.getDefaultDisplay().getMetrics(windowsDisplayMetrics);
         }
+//        windowsDisplayMetrics=context.getResources().getDisplayMetrics();
 
     }
 }

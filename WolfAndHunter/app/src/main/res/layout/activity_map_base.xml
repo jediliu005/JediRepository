@@ -12,8 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#000000"
-        myView:background_img="@drawable/normal_field"
-        myView:mapName="图样"
         >
         <com.jedi.wolf_and_hunter.MyViews.JRocker
             android:layout_height="100dp"

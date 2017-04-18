@@ -47,7 +47,7 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
     Paint paintForPad;
     Paint paintForRocker;
     SurfaceHolder mHolder;
-    boolean isHoldRocker=false;
+    boolean isHoldingRocker=false;
     boolean isStop=false;
     public void init(){
         mHolder=getHolder();
@@ -57,8 +57,8 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
 
 //        setZOrderMediaOverlay(true);
         //以下这两个因为横屏关系，必须宽高调换，
-        windowWidth=dm.heightPixels;
-        windowHeight=dm.widthPixels;
+        windowHeight =dm.heightPixels;
+        windowWidth=dm.widthPixels;
         paintForPad = new Paint();
         paintForPad.setColor(Color.RED);
         paintForPad.setStyle(Paint.Style.STROKE);
@@ -77,8 +77,9 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
         init();
 
         TypedArray ta=context.obtainStyledAttributes(attrs,R.styleable.JRocker);
-        padRadius = (int)(ta.getDimension(R.styleable.JRocker_pad_radius,windowWidth/6));
-        rockerRadius =(int)(ta.getDimension(R.styleable.JRocker_rocker_radius,padRadius/3)) ;
+        padRadius = (int)(ta.getDimension(R.styleable.JRocker_pad_radius,windowWidth/10));
+
+        rockerRadius =(int)(ta.getDimension(R.styleable.JRocker_rocker_radius,(int)(padRadius/1.5))) ;
         padCircleCenter.set(padRadius+rockerRadius,padRadius+rockerRadius);
         rockerCircleCenter.set(padRadius+rockerRadius,padRadius+rockerRadius);
 
@@ -163,45 +164,7 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
 
 
 
-        @Override
-        public boolean onTouchEvent(MotionEvent event) {
-            //获取到手指处的横坐标和纵坐标
-            int x = (int) event.getX();
-            int y = (int) event.getY();
-            switch(event.getAction())
-            {
-                case MotionEvent.ACTION_DOWN:
 
-                    if(MyMathsUtils.isInCircle(rockerCircleCenter,rockerRadius,new Point(x,y)))
-                        isHoldRocker=true;
-
-                    break;
-                case MotionEvent.ACTION_UP:
-                    isHoldRocker=false;
-                    distance=0;
-                    rockerCircleCenter.set(padCircleCenter.x,padCircleCenter.y);
-                    bindingCharacter.hasChanged=false;
-                    bindingCharacter.offX=0;
-                    bindingCharacter.offY=0;
-                    break;
-
-                case MotionEvent.ACTION_MOVE:
-                    if(isHoldRocker==false) {
-                        break;
-                    }
-//                    int offX = x - lastX;
-//                    int offY = y - lastY;
-//                    int newRockerX=rockerCircleCenter.x+offX;
-//                    int newRockerY=rockerCircleCenter.y+offY;
-//                    Point toPoint=new Point(newRockerX,newRockerY);
-                    rockerCircleCenter= new ViewUtils().revisePointInCircleViewMovement(padCircleCenter,padRadius,new Point(x,y));
-                    distance= MyMathsUtils.getDistance(rockerCircleCenter,padCircleCenter);
-                    bindingCharacter.hasChanged=true;
-
-            }
-
-            return true;
-        }
 
 
     @Override

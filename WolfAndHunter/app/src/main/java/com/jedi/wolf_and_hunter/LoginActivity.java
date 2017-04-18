@@ -1,5 +1,6 @@
 package com.jedi.wolf_and_hunter;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -12,7 +13,7 @@ import com.jedi.wolf_and_hunter.activities.MapBaseActivity;
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends Activity {
 
     /**
      * Id to identity READ_CONTACTS permission request.
