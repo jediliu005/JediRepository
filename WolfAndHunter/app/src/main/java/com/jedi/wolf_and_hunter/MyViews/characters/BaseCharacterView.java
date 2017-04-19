@@ -39,6 +39,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     public boolean needMove = false;
     public boolean needTurned = false;
     //以下为角色基本共有属性
+    public boolean hasUpdatedPosition=false;
     public int centerX, centerY;
     public int nowLeft;
     public int nowTop;
@@ -110,11 +111,19 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         sight.bindingCharacter = this;
     }
 
-    public void offsetLRTBParams() {
-        if (needMove == false)
+    public void updateNowPosition() {
+        if(hasUpdatedPosition==true)
             return;
-        //获得视窗虚拟位置
-        sight.updateCurrentWindowPosition();
+        nowLeft = getLeft();
+        nowTop = getTop();
+        nowRight = getRight();
+        nowBottom=getBottom();
+        hasUpdatedPosition=true;
+    }
+
+    public void offsetLRTBParams() {
+
+
         //根据设定速度修正位移量
         double offDistance = Math.sqrt(offX * offX + offY * offY);
         offX = (int) (speed * offX / offDistance);
@@ -127,32 +136,27 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         } catch (Exception e) {
             e.printStackTrace();
         }
+        nowLeft = nowLeft + offX;
+        nowTop = nowTop + offY;
         //判定character位置修正是否在当前视窗内，若不在，根据sight和character位置修正视窗位置
         if (sight.isCharacterInWindow() == false) {
 
             sight.goWatchingCharacter();
-//            ((FrameLayout) getParent()).invalidate();
 
         }
         if (sight.isSightInWindow() == false) {
 
             sight.keepDirectionAndMove(sight.nowWindowLeft, sight.nowWindowTop, sight.nowWindowRight, sight.nowWindowBottom);
 
-
         }
 
 //            centerX = getLeft() + getWidth() / 2 + offX;
 //            centerY = getTop() + getHeight() / 2 + offX;
-        mLayoutParams.leftMargin = getLeft() + offX;
-        mLayoutParams.topMargin = getTop() + offY;
-        this.setLayoutParams(mLayoutParams);
+
 
         if (sight.needMove == false)//当右摇杆不在操作的时候，视点需要伴随角色平移{
         {
-            sight.needMove = true;
-
-//            sight.followCharacter(offX, offY);
-            sight.needMove = false;
+            sight.followCharacter(offX, offY);
         }
 
 
@@ -161,7 +165,8 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
     }
 
-    //因更新不同步产生震动，废弃，留着玩儿
+    //因更新不同步产生震动，懒得调了，废弃，留着玩儿
+    @Deprecated
     public void offsetLRTB() {
         boolean isRightRockerWorking = false;
 
@@ -186,6 +191,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     }
 
     //因更新不同步产生震动，废弃，留着玩儿
+    @Deprecated
     public void transition(@Px int offsetX, @Px int offsetY) {
         if (needMove == false)
             return;
@@ -215,6 +221,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     }
 
     @Override
+    @Deprecated
     public void offsetTopAndBottom(@Px int offset) {
         int offSetCharacter = offset;
         int offSetSight = 0;
@@ -236,6 +243,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
 
     @Override
+    @Deprecated
     public void offsetLeftAndRight(@Px int offset) {
         int offSetCharacter = offset;
         int offSetSight = 0;

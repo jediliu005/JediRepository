@@ -3,6 +3,7 @@ package com.jedi.wolf_and_hunter.MyViews;
 import android.content.Context;
 import android.graphics.Point;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
@@ -88,6 +89,7 @@ public class LeftRocker extends JRocker  {
                     }
                 }
                 synchronized (bindingCharacter) {
+                    Log.i("LeftRocker","ReactToCharacter Started");
                     if (Math.abs(rockerCircleCenter.x - padCircleCenter.x) > padRadius * 0.1) {
                         bindingCharacter.offX = rockerCircleCenter.x - padCircleCenter.x;
                         bindingCharacter.needMove = true;
@@ -96,7 +98,7 @@ public class LeftRocker extends JRocker  {
                         bindingCharacter.offY = rockerCircleCenter.y - padCircleCenter.y;
                         bindingCharacter.needMove = true;
                     }
-
+                    Log.i("LeftRocker","ReactToCharacter Ended");
                 }
                 try {
                     Thread.sleep(20);

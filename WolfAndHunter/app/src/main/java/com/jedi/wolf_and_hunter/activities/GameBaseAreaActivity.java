@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.FrameLayout;
 
 import com.jedi.wolf_and_hunter.MyViews.JRocker;
@@ -61,46 +62,56 @@ public class GameBaseAreaActivity extends Activity {
 //                 }
              }
 
-             private void reflashCharacterState(){
-//                 if(myCharacter.hasChanged==false){
-//                    return;
-//                 }
+             private synchronized void reflashCharacterState(){
+
                  if(myCharacter==null||leftRocker==null||rightRocker==null)
                      return;
                  boolean isMyCharacterMoving=myCharacter.needMove;
                  boolean needChange=false;
-                 if(myCharacter.needMove==true) {
-                     synchronized (myCharacter) {
-                         myCharacter.offsetLRTBParams();
-                         needChange=true;
-//                         myCharacter.getmLayoutParams().setMargins(myCharacter.getLeft(), myCharacter.getTop(), myCharacter.getRight(), myCharacter.getBottom());
-//                         mySight.getmLayoutParams().setMargins(mySight.getLeft(), mySight.getTop(), mySight.getRight(), mySight.getBottom());
-
-                     }
-                 }
-                 if(mySight.needMove==true){
+                 synchronized (myCharacter) {
                      synchronized (mySight) {
-                         mySight.offsetLRTBParams(isMyCharacterMoving);
-//                         mySight.getmLayoutParams().setMargins(mySight.getLeft(), mySight.getTop(), mySight.getRight(), mySight.getBottom());
+                         //获得当前位置
+                         myCharacter.updateNowPosition();
+                         mySight.updateNowPosition();
+                         //获得视窗虚拟位置
+                         mySight.updateNowWindowPosition();
+                         if (myCharacter.needMove == true) {
+                             Log.i("GBA", "Moving Character Started");
+                             myCharacter.offsetLRTBParams();
+                             needChange = true;
+                             Log.i("GBA", "Moving Character ended");
+                         }
+                         if (mySight.needMove == true) {
+                             Log.i("GBA", "Moving Sight Started");
+                             mySight.offsetLRTBParams(isMyCharacterMoving);
+                             Log.i("GBA", "Moving Sight ended");
+                             needChange = true;
+                         }
+                         if (needChange) {
+                             myCharacter.mLayoutParams.leftMargin = myCharacter.nowLeft;
+                             myCharacter.mLayoutParams.topMargin = myCharacter.nowTop;
+                             myCharacter.setLayoutParams(myCharacter.mLayoutParams);
+                             mySight.mLayoutParams.leftMargin = mySight.nowLeft;
+                             mySight.mLayoutParams.topMargin = mySight.nowTop;
+                             mySight.setLayoutParams(mySight.mLayoutParams);
+                             mySight.offsetWindow(mySight.nowWindowLeft, mySight.nowWindowTop);
 
-                         needChange=true;
-                     }
-                 }
-                 if(needChange){
-
-
+                             Log.i("GBA", "Change  Started");
                              mapBaseFrame.invalidate();
-                             myCharacter.centerX = myCharacter.getLeft() + myCharacter.getWidth() / 2;
-                             myCharacter.centerY = myCharacter.getTop() + myCharacter.getHeight() / 2;
-                             mySight.centerX = mySight.getLeft() + mySight.getWidth() / 2;
-                             mySight.centerY = mySight.getTop() + mySight.getHeight() / 2;
+                             myCharacter.centerX = myCharacter.nowLeft + myCharacter.getWidth() / 2;
+                             myCharacter.centerY = myCharacter.nowTop + myCharacter.getHeight() / 2;
+                             mySight.centerX = mySight.nowLeft + mySight.getWidth() / 2;
+                             mySight.centerY = mySight.nowTop + mySight.getHeight() / 2;
                              myCharacter.changeRotate();
+                             myCharacter.hasUpdatedPosition = false;
+                             mySight.hasUpdatedWindowPosition = false;
+                             mySight.hasUpdatedPosition = false;
+                             Log.i("GBA", "Change  ended");
+                         }
 
+                     }
 
-//                     mapBaseFrame.setLayoutParams(mapBaseFrame.getLayoutParams());
                  }
-
-
              }
 
 //             private class ReflashCharacterState implements Runnable{
