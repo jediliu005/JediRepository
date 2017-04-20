@@ -338,22 +338,22 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
 //            centerY = getTop() + getHeight() / 2 + offX;
             //控制位置不超出可视范围
 
-
+            nowLeft = nowLeft + offX;
+            nowTop = nowTop + offY;
+            nowRight = nowLeft + getWidth();
+            nowBottom = nowTop + getHeight();
             if (isMyCharacterMoving) {
                 movingNearCharacter();
             } else {
-                nowLeft = nowLeft + offX;
-                nowTop = nowTop + offY;
-                nowRight = nowLeft + getWidth();
-                nowBottom = nowTop + getHeight();
-                if (this.nowLeft + offX < nowWindowLeft)
-                    nowWindowLeft = this.nowLeft + offX;
-                if (this.nowRight + offX > nowWindowRight)
-                    nowWindowLeft = this.nowRight + offX - windowWidth;
-                if (this.nowTop + offY < nowWindowTop)
-                    nowWindowTop = this.nowTop + offY;
-                if (this.nowBottom + offY > nowWindowBottom)
-                    nowWindowTop = this.nowBottom + offY - windowHeight;
+
+                if (this.nowLeft  < nowWindowLeft)
+                    nowWindowLeft = this.nowLeft;
+                if (this.nowRight> nowWindowRight)
+                    nowWindowLeft = this.nowRight - windowWidth;
+                if (this.nowTop  < nowWindowTop)
+                    nowWindowTop = this.nowTop;
+                if (this.nowBottom  > nowWindowBottom)
+                    nowWindowTop = this.nowBottom - windowHeight;
                 nowWindowRight = nowWindowLeft + windowWidth;
                 nowWindowBottom = nowWindowTop + windowHeight;
             }
@@ -367,8 +367,8 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void movingNearCharacter() {
-        int newLRRelateX = Math.abs((nowLeft + nowRight) / 2 - (bindingCharacter.nowLeft + bindingCharacter.nowRight) / 2) + (getWidth() + bindingCharacter.getWidth()) / 2 + offX;
-        int newTBRelateY = Math.abs((nowTop + nowBottom) / 2 - (bindingCharacter.nowTop + bindingCharacter.nowBottom) / 2) + (getHeight() + bindingCharacter.getHeight()) / 2 + offY;
+        int newLRRelateX = Math.abs((nowLeft + nowRight) / 2 - (bindingCharacter.nowLeft + bindingCharacter.nowRight) / 2) + (getWidth() + bindingCharacter.getWidth()) / 2 ;
+        int newTBRelateY = Math.abs((nowTop + nowBottom) / 2 - (bindingCharacter.nowTop + bindingCharacter.nowBottom) / 2) + (getHeight() + bindingCharacter.getHeight()) / 2 ;
         if (newLRRelateX > windowWidth) {
             if (nowRight > bindingCharacter.nowLeft) {
                 nowRight = bindingCharacter.nowLeft + windowWidth;
@@ -378,8 +378,7 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
                 nowRight = nowLeft + getWidth();
             }
         } else {
-            nowLeft = nowLeft + offX;
-            nowRight = nowLeft + getWidth();
+
             if (nowLeft < nowWindowLeft) {
                 nowWindowLeft = nowLeft;
                 nowWindowRight = nowWindowLeft + windowWidth;
@@ -399,8 +398,7 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
                 nowBottom = nowTop + getHeight();
             }
         } else {
-            nowTop = nowTop + offY;
-            nowBottom = nowTop + getHeight();
+
             if (nowTop < nowWindowTop) {
                 nowWindowTop = nowTop;
                 nowWindowBottom = nowWindowTop + windowHeight;

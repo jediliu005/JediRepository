@@ -137,7 +137,9 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
             e.printStackTrace();
         }
         nowLeft = nowLeft + offX;
-        nowTop = nowTop + offY;
+        nowTop=nowTop+offY;
+        nowRight = nowLeft + getWidth();
+        nowBottom=nowTop+getHeight();
         //判定character位置修正是否在当前视窗内，若不在，根据sight和character位置修正视窗位置
         if (sight.isCharacterInWindow() == false) {
 

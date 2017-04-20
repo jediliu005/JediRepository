@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
@@ -22,6 +23,9 @@ public class MapBaseFrame extends FrameLayout {
     private int lastX;
     private int lastY;
     public SightView mySight;
+    public BaseCharacterView myCharacter;
+    public LeftRocker leftRocker;
+    public RightRocker rightRocker;
 
     public MapBaseFrame(@NonNull Context context) {
         super(context);
@@ -65,8 +69,7 @@ public class MapBaseFrame extends FrameLayout {
         int offX ;
         int offY ;
 
-        switch(event.getAction())
-        {
+        switch(event.getAction()) {
             case MotionEvent.ACTION_DOWN:
 
                 lastX = x;
@@ -74,21 +77,22 @@ public class MapBaseFrame extends FrameLayout {
 
                 break;
 
+            case MotionEvent.ACTION_UP:
+                lastX = 0;
+                lastY = 0;
+                offX = 0;
+                offY = 0;
+                break;
             case MotionEvent.ACTION_MOVE:
+                if (leftRocker.isHoldingRocker == false && rightRocker.isHoldingRocker == false) {
+                    int[] movementArr = new int[4];
+                    //计算移动的距离
+                    offX = x - lastX;
+                    offY = y - lastY;
 
-                int[] movementArr=new int[4];
-                //计算移动的距离
-                offX = x - lastX;
-                offY = y - lastY;
-
-                movementArr= new ViewUtils().reviseTwoRectViewMovement(this,(View)getParent(),offX,offY);
-                layout(movementArr[0],movementArr[1], movementArr[2], movementArr[3]);
-//                synchronized (mySight) {
-//                    mySight.windowLeft = - movementArr[0];
-//                    mySight.windowTop = - movementArr[1];
-//                    mySight.windowRight = - movementArr[2];
-//                    mySight.windowBottom = - movementArr[3];
-//                }
+                    movementArr = new ViewUtils().reviseTwoRectViewMovement(this, (View) getParent(), offX, offY);
+                    layout(movementArr[0], movementArr[1], movementArr[2], movementArr[3]);
+                }
         }
         return true;
     }

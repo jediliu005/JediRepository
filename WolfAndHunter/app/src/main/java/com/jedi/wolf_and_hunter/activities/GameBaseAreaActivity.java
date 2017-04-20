@@ -70,6 +70,9 @@ public class GameBaseAreaActivity extends Activity {
                  boolean needChange=false;
                  synchronized (myCharacter) {
                      synchronized (mySight) {
+                         myCharacter.hasUpdatedPosition = false;
+                         mySight.hasUpdatedWindowPosition = false;
+                         mySight.hasUpdatedPosition = false;
                          //获得当前位置
                          myCharacter.updateNowPosition();
                          mySight.updateNowPosition();
@@ -103,9 +106,7 @@ public class GameBaseAreaActivity extends Activity {
                              mySight.centerX = mySight.nowLeft + mySight.getWidth() / 2;
                              mySight.centerY = mySight.nowTop + mySight.getHeight() / 2;
                              myCharacter.changeRotate();
-                             myCharacter.hasUpdatedPosition = false;
-                             mySight.hasUpdatedWindowPosition = false;
-                             mySight.hasUpdatedPosition = false;
+
                              Log.i("GBA", "Change  ended");
                          }
 
@@ -165,10 +166,11 @@ public class GameBaseAreaActivity extends Activity {
         paramsForMapBase.height=1500;
         myCharacter = new BaseCharacterView(this);
         mapBaseFrame.addView(myCharacter);
-
+        mapBaseFrame.myCharacter=myCharacter;
         mySight = new SightView(this);
         mySight. sightSize=myCharacter.characterBodySize;
         mapBaseFrame.addView(mySight);
+        mapBaseFrame.mySight=mySight;
         FrameLayout.LayoutParams paramsForMySight = (FrameLayout.LayoutParams)mySight.getLayoutParams();
         paramsForMySight.leftMargin=myCharacter.characterBodySize*2;
         paramsForMySight.topMargin=myCharacter.characterBodySize*2;
@@ -178,16 +180,18 @@ public class GameBaseAreaActivity extends Activity {
         leftRocker.setBindingCharacter(myCharacter);
         this.gameHandler=new GameHandler();
         leftRocker.gameHandler=gameHandler;
+        mapBaseFrame.leftRocker=leftRocker;
 
 
-        timer.schedule(new MyTimerTask(),20,20);
+
 
 
 
         rightRocker=(RightRocker) this.findViewById(R.id.rocker_right);
         rightRocker.setBindingCharacter(myCharacter);
+        mapBaseFrame.rightRocker=rightRocker;
         myCharacter.setSight(mySight);
-
+        timer.schedule(new MyTimerTask(),20,20);
 
 //        leftRocker.gameHandler=this.gameHandler;
 //        rightRocker.gameHandler=this.gameHandler;
