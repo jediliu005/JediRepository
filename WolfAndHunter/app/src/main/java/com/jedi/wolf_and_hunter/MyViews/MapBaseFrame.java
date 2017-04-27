@@ -2,6 +2,14 @@ package com.jedi.wolf_and_hunter.MyViews;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
@@ -12,6 +20,8 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
+import com.jedi.wolf_and_hunter.MyViews.landform.Landform;
+import com.jedi.wolf_and_hunter.R;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
@@ -21,11 +31,18 @@ import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
 public class MapBaseFrame extends FrameLayout {
     private int lastX;
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+    }
+
     private int lastY;
     public SightView mySight;
     public BaseCharacterView myCharacter;
     public LeftRocker leftRocker;
     public RightRocker rightRocker;
+    public  Landform[][] landformses;
 
     public MapBaseFrame(@NonNull Context context) {
         super(context);
@@ -50,15 +67,11 @@ public class MapBaseFrame extends FrameLayout {
         super(context, attrs, defStyleAttr);
     }
 
-//    public void getParentSize(){
-//        View parentView=(View)this.getParent();
-//        if(parentView==null)
-//            return;
-//        if(parentHeight==0||parentWidth==0) {
-//            parentHeight = parentView.getHeight();
-//            parentWidth = parentView.getWidth();
-//        }
-//    }
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+    }
 
     public boolean onTouchEvent(MotionEvent event) {
 

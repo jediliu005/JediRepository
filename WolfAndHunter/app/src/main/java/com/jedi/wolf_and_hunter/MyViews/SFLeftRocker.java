@@ -3,12 +3,10 @@ package com.jedi.wolf_and_hunter.MyViews;
 import android.content.Context;
 import android.graphics.Point;
 import android.util.AttributeSet;
-import android.view.Gravity;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
-import android.widget.FrameLayout;
 
-import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
 import com.jedi.wolf_and_hunter.utils.MyMathsUtils;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
@@ -17,18 +15,23 @@ import com.jedi.wolf_and_hunter.utils.ViewUtils;
  * Created by Administrator on 2017/3/29.
  */
 
-public class RightRocker extends JRocker  {
+public class SFLeftRocker extends SFJRocker  {
+
+    public GameBaseAreaActivity.GameHandler gameHandler;
+    boolean isStop=false;
 
 
-
-
-
-    public RightRocker(Context context, AttributeSet attrs) {
+    public SFLeftRocker(Context context, AttributeSet attrs) {
         super(context, attrs);
-        FrameLayout.LayoutParams params=( FrameLayout.LayoutParams)getLayoutParams();
-        params.gravity= Gravity.TOP | Gravity.RIGHT;
     }
 
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        super.surfaceCreated(holder);
+        ReactToCharacter reactToCharacter=new ReactToCharacter();
+        Thread reactThread=new Thread(reactToCharacter);
+        reactThread.start();
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -49,39 +52,63 @@ public class RightRocker extends JRocker  {
                 isHoldingRocker=false;
                 distance=0;
                 rockerCircleCenter.set(padCircleCenter.x,padCircleCenter.y);
-                synchronized (bindingCharacter.getSight()) {
-                    bindingCharacter.getSight().needMove = false;
-                    bindingCharacter.getSight().offX = 0;
-                    bindingCharacter.getSight().offY = 0;
-                }
+                bindingCharacter.needMove=false;
+                bindingCharacter.offX=0;
+                bindingCharacter.offY=0;
                 startCenterX=padCircleCenter.x;
                 startCenterY=padCircleCenter.y;
-                invalidate();
                 break;
 
             case MotionEvent.ACTION_MOVE:
                 if(isHoldingRocker==false) {
                     break;
                 }
-
                 int relateX=x-startCenterX;
                 int relateY=y-startCenterY;
-
-
                 Point newPosition=new Point(padCircleCenter.x+relateX,padCircleCenter.y+relateY);
                 rockerCircleCenter= new ViewUtils().revisePointInCircleViewMovement(padCircleCenter,padRadius,newPosition);
-                synchronized (bindingCharacter.getSight()) {
-                    bindingCharacter.getSight().offX = rockerCircleCenter.x - padCircleCenter.x;
-                    bindingCharacter.getSight().needMove = true;
-                    bindingCharacter.getSight().offY = rockerCircleCenter.y - padCircleCenter.y;
-                    bindingCharacter.getSight().needMove = true;
-                }
                 distance= MyMathsUtils.getDistance(rockerCircleCenter,padCircleCenter);
-                invalidate();
+
+
         }
 
         return true;
     }
 
 
+     class ReactToCharacter implements Runnable{
+
+
+
+        @Override
+        public void run() {
+
+
+
+
+            while (!isStop) {
+                if(distance==0){
+                    try {
+                        Thread.sleep(20);
+                        continue;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                synchronized (bindingCharacter) {
+                    Log.i("LeftRocker","ReactToCharacter Started");
+                        bindingCharacter.offX = rockerCircleCenter.x - padCircleCenter.x;
+                        bindingCharacter.needMove = true;
+                        bindingCharacter.offY = rockerCircleCenter.y - padCircleCenter.y;
+                        bindingCharacter.needMove = true;
+                    Log.i("LeftRocker","ReactToCharacter Ended");
+                }
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }

@@ -13,6 +13,8 @@ import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
@@ -25,12 +27,24 @@ import com.jedi.wolf_and_hunter.utils.ViewUtils;
  * Created by Administrator on 2017/3/29.
  */
 
-public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
+public class JRocker extends View  {
     BaseCharacterView bindingCharacter;
     public GameBaseAreaActivity.GameHandler gameHandler;
     Point padCircleCenter=new Point();
     Point rockerCircleCenter=new Point();
 
+    int startCenterX;
+    int startCenterY;
+
+    int windowWidth;
+    int windowHeight;
+    public static int padRadius;
+    public static int rockerRadius;
+    double distance=0;
+    Paint paintForPad;
+    Paint paintForRocker;
+    public boolean isHoldingRocker=false;
+    boolean isStop=false;
     public BaseCharacterView getBindingCharacter() {
         return bindingCharacter;
     }
@@ -38,50 +52,54 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
     public void setBindingCharacter(BaseCharacterView bindingCharacter) {
         this.bindingCharacter = bindingCharacter;
     }
-
-    int windowWidth;
-    int windowHeight;
-    int padRadius;
-    int rockerRadius;
-    double distance=0;
-    Paint paintForPad;
-    Paint paintForRocker;
-    SurfaceHolder mHolder;
-    boolean isHoldingRocker=false;
-    boolean isStop=false;
-    public void init(){
-        mHolder=getHolder();
-        mHolder.addCallback(this);
+    public void init(Context context,AttributeSet attrs){
+//        setBackgroundColor(Color.GRAY);
         ViewUtils.initWindowParams(getContext());
         DisplayMetrics dm=ViewUtils.windowsDisplayMetrics;
 
-//        setZOrderMediaOverlay(true);
-        //以下这两个因为横屏关系，必须宽高调换，
         windowHeight =dm.heightPixels;
         windowWidth=dm.widthPixels;
+        if(attrs!=null) {
+            TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.JRocker);
+            padRadius = (int) (ta.getDimension(R.styleable.JRocker_pad_radius, windowWidth / 10));
+            rockerRadius = (int) (ta.getDimension(R.styleable.JRocker_rocker_radius, (int) (padRadius / 1.3)));
+        }else{
+            padRadius = (int) (windowWidth / 10);
+            rockerRadius = (int) (padRadius / 1.3);
+        }
+        padCircleCenter.set(padRadius+rockerRadius,padRadius+rockerRadius);
+        rockerCircleCenter.set(padRadius+rockerRadius,padRadius+rockerRadius);
+
         paintForPad = new Paint();
-        paintForPad.setColor(Color.RED);
+        paintForPad.setColor(Color.WHITE);
         paintForPad.setStyle(Paint.Style.STROKE);
         paintForPad.setAntiAlias(true);
         paintForPad.setStrokeWidth(10);
 
         paintForRocker = new Paint();
-        paintForRocker.setColor(Color.RED);
+        paintForRocker.setColor(Color.WHITE);
         paintForRocker.setStyle(Paint.Style.FILL);
         paintForRocker.setAntiAlias(true);
-        mHolder.setFormat(PixelFormat.TRANSLUCENT);
-        setZOrderOnTop(true);
+
+        FrameLayout.LayoutParams paramsForJRocker = ( FrameLayout.LayoutParams)getLayoutParams();
+        if(paramsForJRocker==null)
+//            paramsForJRocker=new FrameLayout.LayoutParams(2*padRadius+2*rockerRadius,2*padRadius+2*rockerRadius);
+            paramsForJRocker=new FrameLayout.LayoutParams(2*padRadius+2*rockerRadius,2*padRadius+2*rockerRadius);
+        else {
+//            paramsForJRocker.height = (int) (2 * padRadius + 2 * rockerRadius);
+//            paramsForJRocker.width = (int) (2 * padRadius + 2 * rockerRadius);
+            paramsForJRocker.height = 2*padRadius+2*rockerRadius;
+            paramsForJRocker.width = 2*padRadius+2*rockerRadius;
+        }
+
+        //在这里，新版系统必须重新setLayoutParams才能成功调整,19不用，还是要加。。。
+        this.setLayoutParams(paramsForJRocker);
     }
     public JRocker(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
 
-        TypedArray ta=context.obtainStyledAttributes(attrs,R.styleable.JRocker);
-        padRadius = (int)(ta.getDimension(R.styleable.JRocker_pad_radius,windowWidth/10));
 
-        rockerRadius =(int)(ta.getDimension(R.styleable.JRocker_rocker_radius,(int)(padRadius/1.5))) ;
-        padCircleCenter.set(padRadius+rockerRadius,padRadius+rockerRadius);
-        rockerCircleCenter.set(padRadius+rockerRadius,padRadius+rockerRadius);
+        init(context,attrs);
 
 
 
@@ -90,6 +108,7 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
 
     public JRocker(Context context) {
         super(context);
+        init(context,null);
     }
 
     /**
@@ -104,77 +123,12 @@ public class JRocker extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-
-        isStop=false;
-
-        setFocusable(true);
-        setFocusableInTouchMode(true);
-
-        FrameLayout.LayoutParams paramsForJRocker = ( FrameLayout.LayoutParams)getLayoutParams();
-        paramsForJRocker.height=(int)(2*padRadius+2*rockerRadius);
-        paramsForJRocker.width=(int)(2*padRadius+2*rockerRadius);
-        //在这里，新版系统必须重新setLayoutParams才能成功调整,19不用，还是要加。。。
-        this.setLayoutParams(paramsForJRocker);
-        DrawRocker drawLeftRocker=new DrawRocker();
-        Thread drawThread=new Thread(drawLeftRocker);
-        drawThread.start();
-
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        canvas.drawCircle( padCircleCenter.x, padCircleCenter.y,padRadius, paintForPad);
+        canvas.drawCircle( rockerCircleCenter.x, rockerCircleCenter.y,rockerRadius, paintForRocker);
 
     }
 
 
-
-
-    class DrawRocker implements Runnable{
-
-        @Override
-        public void run() {
-            Canvas canvas = null;
-
-
-            while (!isStop) {
-                try {
-
-                    canvas = mHolder.lockCanvas();
-                    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//清除屏幕
-
-//                    canvas.drawColor(Color.GREEN);
-                    canvas.drawCircle( padCircleCenter.x, padCircleCenter.y,padRadius, paintForPad);
-                    canvas.drawCircle( rockerCircleCenter.x, rockerCircleCenter.y,rockerRadius, paintForRocker);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (canvas != null) {
-                        mHolder.unlockCanvasAndPost(canvas);
-                    }
-                    try {
-                        Thread.sleep(20);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-            }
-        }
-    }
-
-
-
-
-
-
-
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-
-        isStop=true;
-    }
 }
