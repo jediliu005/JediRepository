@@ -25,6 +25,7 @@ public class RightRocker extends JRocker  {
 
     public RightRocker(Context context, AttributeSet attrs) {
         super(context, attrs);
+
         FrameLayout.LayoutParams params=( FrameLayout.LayoutParams)getLayoutParams();
         params.gravity= Gravity.TOP | Gravity.RIGHT;
     }

@@ -9,7 +9,6 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
-import android.os.Handler;
 import android.support.annotation.Px;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -22,16 +21,12 @@ import android.widget.FrameLayout;
 import com.jedi.wolf_and_hunter.MyViews.AttackRange;
 import com.jedi.wolf_and_hunter.MyViews.GameMap;
 import com.jedi.wolf_and_hunter.MyViews.JRocker;
-import com.jedi.wolf_and_hunter.MyViews.SFViewRange;
 import com.jedi.wolf_and_hunter.MyViews.SightView;
 import com.jedi.wolf_and_hunter.MyViews.ViewRange;
 import com.jedi.wolf_and_hunter.MyViews.landform.Landform;
-import com.jedi.wolf_and_hunter.MyViews.landform.TallGrassland;
 import com.jedi.wolf_and_hunter.R;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
-
-import java.io.File;
 
 /**
  * Created by Administrator on 2017/3/13.
@@ -49,11 +44,11 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     public boolean needTurned = false;
     //以下为角色基本共有属性
     public boolean hasUpdatedPosition=false;
-    public int centerX, centerY;
-    public int nowLeft;
-    public int nowTop;
-    public int nowRight;
-    public int nowBottom;
+    public int centerX=-1, centerY=-1;
+    public int nowLeft=-1;
+    public int nowTop=-1;
+    public int nowRight=-1;
+    public int nowBottom=-1;
     public float nowFacingAngle;
     public float nowViewAngle=90;
     public int characterBodySize;
@@ -64,8 +59,8 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     public static final int HIDDEN_LEVEL_HIGHT_HIDDEN = 2;
     public static final int HIDDEN_LEVEL_ABSOLUTE_HIDDEN = 3;
     public  final int defaultHiddenLevel=HIDDEN_LEVEL_NO_HIDDEN;
-    public  final int nowAttackRadius=600;
-    public  final int nowViewRadius=460;
+    public  int nowAttackRadius=600;
+    public  int nowViewRadius=460;
     public int speed = 10;
     public SightView sight;
     public AttackRange attackRange;
@@ -74,17 +69,22 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     public int lastEffectY=-1;
     public Landform lastLandform;
     //以下为绘图杂项
+    public Bitmap characterPic;
+    public Matrix matrixForCP;
     int windowWidth;
     int windowHeight;
     public boolean isStop;
     public Bitmap arrowBitMap;
-    public Matrix matrix;
+    public Matrix matrixForArrow;
     public SurfaceHolder mHolder;
     public int arrowBitmapWidth;
     public int arrowBitmapHeight;
     public FrameLayout.LayoutParams mLayoutParams;
+    int borderWidth;
     Paint normalPaint;
     Paint alphaPaint;
+    Paint textNormalPaint;
+    Paint textAlphaPaint;
     public GameBaseAreaActivity.GameHandler gameHandler;
 
     public FrameLayout.LayoutParams getmLayoutParams() {
@@ -109,33 +109,94 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         super(context, attrs, defStyle);
         init();
     }
-
+//sight仅对玩家操控角色有意义，不在这里统一创建
     private void init() {
         ViewUtils.initWindowParams(getContext());
         DisplayMetrics dm = ViewUtils.windowsDisplayMetrics;
         windowHeight = dm.heightPixels;
         windowWidth = dm.widthPixels;
-        characterBodySize = 50;
+        characterBodySize = 60;
         mHolder = getHolder();
         mHolder.addCallback(this);
         //以下两句必须在构造方法里做，否则各种奇妙poorguy
         mHolder.setFormat(PixelFormat.TRANSLUCENT);
-
         setZOrderOnTop(true);
+        
+        borderWidth=5;
         normalPaint = new Paint();
-        normalPaint.setColor(Color.WHITE);
+        normalPaint.setColor(Color.BLACK);
         normalPaint.setStyle(Paint.Style.STROKE);
-        normalPaint.setStrokeWidth(5);
+        normalPaint.setStrokeWidth(borderWidth);
+        normalPaint.setTextAlign(Paint.Align.CENTER);
         normalPaint.setAntiAlias(true);
-        normalPaint.setTextSize(30);
+
+        textNormalPaint = new Paint();
+        textNormalPaint.setColor(Color.BLACK);
+        textNormalPaint.setFakeBoldText(false);
+        textNormalPaint.setTextAlign(Paint.Align.CENTER);
+        textNormalPaint.setTextSize(characterBodySize*2/3);
+        textNormalPaint.setAntiAlias(true);
+
 
         alphaPaint = new Paint();
-        alphaPaint.setColor(Color.WHITE);
+        alphaPaint.setColor(Color.BLACK);
         alphaPaint.setStyle(Paint.Style.STROKE);
-        alphaPaint.setStrokeWidth(5);
+        alphaPaint.setTextAlign(Paint.Align.CENTER);
+        alphaPaint.setTextSize(characterBodySize);
+        alphaPaint.setStrokeWidth(borderWidth);
         alphaPaint.setAlpha(50);
         alphaPaint.setAntiAlias(true);
-        alphaPaint.setTextSize(30);
+
+        textAlphaPaint = new Paint();
+        textAlphaPaint.setColor(Color.BLACK);
+        textNormalPaint.setFakeBoldText(false);
+        textAlphaPaint.setTextAlign(Paint.Align.CENTER);
+        int textSize=characterBodySize*2/3;
+        textAlphaPaint.setTextSize(textSize);
+        textAlphaPaint.setAlpha(50);
+        textAlphaPaint.setAntiAlias(true);
+
+        matrixForCP = new Matrix();
+        matrixForCP.postScale((float) (0.7 * characterBodySize / 76), (float) (0.7 * characterBodySize / 76));
+
+        arrowBitMap = BitmapFactory.decodeResource(getResources(), R.drawable.arrow);
+        matrixForArrow = new Matrix();
+
+        matrixForArrow.postScale((float) (0.5 * characterBodySize / arrowBitMap.getWidth()), (float) (0.5 * characterBodySize / arrowBitMap.getHeight()));
+        arrowBitMap = Bitmap.createBitmap(arrowBitMap, 0, 0, arrowBitMap.getWidth(), arrowBitMap.getHeight(),
+                matrixForArrow, true);
+        arrowBitmapHeight = arrowBitMap.getHeight();
+        arrowBitmapWidth = arrowBitMap.getHeight();
+//        aroundSize = 2 * arrowBitmapWidth;
+
+        mLayoutParams = (FrameLayout.LayoutParams) this.getLayoutParams();
+        if(mLayoutParams==null)
+            mLayoutParams=new FrameLayout.LayoutParams(characterBodySize,characterBodySize);
+//        mLayoutParams.height = characterBodySize + aroundSize;
+//        mLayoutParams.width = characterBodySize + aroundSize;
+//        centerX = getLeft() + (characterBodySize + aroundSize) / 2;
+//        centerY = getTop() + (characterBodySize + aroundSize) / 2;
+        else {
+            mLayoutParams.height = characterBodySize;
+            mLayoutParams.width = characterBodySize;
+
+        }
+
+        if(nowLeft<0||nowTop<0){
+            nowLeft=100;
+            nowTop=100;
+            nowRight=nowLeft+characterBodySize;
+            nowBottom=nowTop+characterBodySize;
+        }
+        mLayoutParams.leftMargin=nowLeft;
+        mLayoutParams.topMargin=nowTop;
+        this.setLayoutParams(mLayoutParams);
+        centerX = nowLeft + (characterBodySize) / 2;
+        centerY = nowTop + (characterBodySize) / 2;
+        new AttackRange(getContext(),this);
+        new ViewRange(getContext(),this);
+
+
     }
 
     public SightView getSight() {
@@ -302,6 +363,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
     }
     public  void changeState(){
+
         int x=(centerX-1)/100;
         int y=(centerY-1)/100;
         if(x!=lastEffectX||y!=lastEffectY){
@@ -311,11 +373,14 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
             lastEffectY=y;
         }
         if(GameMap.landformses!=null){
-
+            if(GameMap.landformses.length<=y||GameMap.landformses[y].length<=x)
+                return;
             Landform landform=GameMap.landformses[y][x];
             if(landform!=null) {
                 landform.effect(this);
                 lastLandform = landform;
+            }else{
+
             }
         }else{
             lastLandform=null;
@@ -384,6 +449,8 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 //        return true;
 //    }
 
+
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
 
@@ -393,28 +460,11 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 //        holder.setFormat(PixelFormat.TRANSLUCENT);
 
 
-        arrowBitMap = BitmapFactory.decodeResource(getResources(), R.drawable.arrow);
-        matrix = new Matrix();
-//         缩放原图
-        matrix.postScale((float) (0.5 * characterBodySize / arrowBitMap.getWidth()), (float) (0.5 * characterBodySize / arrowBitMap.getHeight()));
-        arrowBitMap = Bitmap.createBitmap(arrowBitMap, 0, 0, arrowBitMap.getWidth(), arrowBitMap.getHeight(),
-                matrix, true);
-        arrowBitmapHeight = arrowBitMap.getHeight();
-        arrowBitmapWidth = arrowBitMap.getHeight();
-//        aroundSize = 2 * arrowBitmapWidth;
 
-        mLayoutParams = (FrameLayout.LayoutParams) this.getLayoutParams();
-//        mLayoutParams.height = characterBodySize + aroundSize;
-//        mLayoutParams.width = characterBodySize + aroundSize;
-//        centerX = getLeft() + (characterBodySize + aroundSize) / 2;
-//        centerY = getTop() + (characterBodySize + aroundSize) / 2;
-        mLayoutParams.height = characterBodySize;
-        mLayoutParams.width = characterBodySize;
-        centerX = getLeft() + (characterBodySize) / 2;
-        centerY = getTop() + (characterBodySize) / 2;
-        this.setLayoutParams(mLayoutParams);
-        gameHandler.sendEmptyMessage(GameBaseAreaActivity.GameHandler.ADD_ATTACT_RANGE);
-        gameHandler.sendEmptyMessage(GameBaseAreaActivity.GameHandler.ADD_VIEW_RANGE);
+
+//        this.setLayoutParams(mLayoutParams);
+//        gameHandler.sendEmptyMessage(GameBaseAreaActivity.GameHandler.ADD_ATTACT_RANGE);
+//        gameHandler.sendEmptyMessage(GameBaseAreaActivity.GameHandler.ADD_VIEW_RANGE);
         Thread drawThread = new Thread(new CharacterDraw());
         drawThread.start();
     }
@@ -438,14 +488,18 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 //                    canvas.drawRect(aroundSize / 2, aroundSize / 2, aroundSize / 2 + characterBodySize, aroundSize / 2 + characterBodySize, paint);
 //                    canvas.drawCircle((characterBodySize + aroundSize) / 2, (characterBodySize + aroundSize) / 2, characterBodySize / 2, paint);
 //                    canvas.drawBitmap(arrowBitMap, characterBodySize + aroundSize / 2, (characterBodySize + aroundSize - arrowBitmapHeight) / 2, null);
-                    canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+
                     if(nowHiddenLevel==0) {
-                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, normalPaint);
-                        canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2, normalPaint);
+                        canvas.drawBitmap(characterPic,(int)(characterBodySize*0.15),(int)(characterBodySize*0.15),normalPaint);
+                        canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+//                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, normalPaint);
+                        canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2-borderWidth, normalPaint);
                         canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, normalPaint);
                     }else{
-                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, alphaPaint);
-                        canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2, alphaPaint);
+                        canvas.drawBitmap(characterPic,(int)(characterBodySize*0.15),(int)(characterBodySize*0.15),alphaPaint);
+                        canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+//                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, alphaPaint);
+                        canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2-borderWidth, alphaPaint);
                         canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, alphaPaint);
                     }
                     } catch (Exception e) {

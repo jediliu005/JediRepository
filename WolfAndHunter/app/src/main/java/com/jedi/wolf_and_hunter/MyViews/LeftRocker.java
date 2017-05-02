@@ -19,12 +19,12 @@ import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
 public class LeftRocker extends JRocker  {
 
-    public GameBaseAreaActivity.GameHandler gameHandler;
 
 
     public LeftRocker(Context context, AttributeSet attrs) {
 
         super(context, attrs);
+
         FrameLayout.LayoutParams params=( FrameLayout.LayoutParams)getLayoutParams();
         params.gravity= Gravity.TOP | Gravity.LEFT;
         setLayoutParams(params);

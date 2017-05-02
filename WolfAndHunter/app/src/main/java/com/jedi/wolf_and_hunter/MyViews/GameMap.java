@@ -19,6 +19,10 @@ import com.jedi.wolf_and_hunter.MyViews.landform.TallGrassland;
 import com.jedi.wolf_and_hunter.R;
 
 /**
+ * 为什么要加这个View且这个View与角色等其他组件并列呢？
+ * 其实是因为Landform可能是View也可能是普通图片
+ * 虽然作为ViewGroup的MapBaseFrame也可以强制ondraw
+ * 但经过测试十分耗资源，大概是因为经常被强制触发吧
  * Created by Administrator on 2017/4/21.
  */
 

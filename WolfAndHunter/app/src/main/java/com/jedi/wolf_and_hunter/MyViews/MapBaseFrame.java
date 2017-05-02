@@ -15,8 +15,10 @@ import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
@@ -42,23 +44,30 @@ public class MapBaseFrame extends FrameLayout {
     public BaseCharacterView myCharacter;
     public LeftRocker leftRocker;
     public RightRocker rightRocker;
+    private LayoutParams mLayoutParams;
     public  Landform[][] landformses;
+    public int mapWidth;
+    public int mapHeight;
 
-    public MapBaseFrame(@NonNull Context context) {
+
+    public MapBaseFrame(@NonNull Context context,int mapWidth,int mapHeight) {
         super(context);
+        this.mapWidth=mapWidth;
+        this.mapHeight=mapHeight;
+        mLayoutParams=new LayoutParams(mapWidth,mapHeight);
 
     }
 
     public MapBaseFrame(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        TypedArray ta=null;
+
 
 
     }
 
     public MapBaseFrame(@NonNull Context context, @Nullable AttributeSet attrs, GameBaseAreaActivity.GameHandler gameHandler) {
         super(context, attrs);
-        TypedArray ta=null;
+
 
 
     }
@@ -67,10 +76,39 @@ public class MapBaseFrame extends FrameLayout {
         super(context, attrs, defStyleAttr);
     }
 
+
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        DisplayMetrics dm=ViewUtils.getWindowsDisplayMetrics();
+        if(mapWidth==0)
+            mapWidth=dm.widthPixels;
+        if(mapHeight==0)
+            mapHeight=dm.heightPixels;
+        int width=measureDimension(mapWidth,widthMeasureSpec);
+        int height=measureDimension(mapHeight,heightMeasureSpec);
+        setMeasuredDimension(width,height);
+    }
+
+    public int measureDimension(int defaultSize, int measureSpec){
+        int result;
+
+        int specMode = MeasureSpec.getMode(measureSpec);
+        int specSize = MeasureSpec.getSize(measureSpec);
+
+        if(specMode == MeasureSpec.EXACTLY){
+            result = specSize;
+        }else{
+            result = defaultSize;   //UNSPECIFIED
+        }
+        return result;
     }
 
     public boolean onTouchEvent(MotionEvent event) {
@@ -104,7 +142,10 @@ public class MapBaseFrame extends FrameLayout {
                     offY = y - lastY;
 
                     movementArr = new ViewUtils().reviseTwoRectViewMovement(this, (View) getParent(), offX, offY);
-                    layout(movementArr[0], movementArr[1], movementArr[2], movementArr[3]);
+                    int width=mLayoutParams.width;
+                    mLayoutParams.leftMargin=movementArr[0];
+                    mLayoutParams.topMargin=movementArr[1];
+                    this.setLayoutParams(mLayoutParams);
                 }
         }
         return true;

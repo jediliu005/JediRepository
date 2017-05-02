@@ -74,36 +74,31 @@ public class JRocker extends View  {
         paintForPad.setColor(Color.WHITE);
         paintForPad.setStyle(Paint.Style.STROKE);
         paintForPad.setAntiAlias(true);
+        paintForPad.setAlpha(100);
         paintForPad.setStrokeWidth(10);
 
         paintForRocker = new Paint();
         paintForRocker.setColor(Color.WHITE);
         paintForRocker.setStyle(Paint.Style.FILL);
+        paintForRocker.setAlpha(100);
         paintForRocker.setAntiAlias(true);
 
         FrameLayout.LayoutParams paramsForJRocker = ( FrameLayout.LayoutParams)getLayoutParams();
         if(paramsForJRocker==null)
-//            paramsForJRocker=new FrameLayout.LayoutParams(2*padRadius+2*rockerRadius,2*padRadius+2*rockerRadius);
             paramsForJRocker=new FrameLayout.LayoutParams(2*padRadius+2*rockerRadius,2*padRadius+2*rockerRadius);
         else {
-//            paramsForJRocker.height = (int) (2 * padRadius + 2 * rockerRadius);
-//            paramsForJRocker.width = (int) (2 * padRadius + 2 * rockerRadius);
             paramsForJRocker.height = 2*padRadius+2*rockerRadius;
             paramsForJRocker.width = 2*padRadius+2*rockerRadius;
         }
+
+
 
         //在这里，新版系统必须重新setLayoutParams才能成功调整,19不用，还是要加。。。
         this.setLayoutParams(paramsForJRocker);
     }
     public JRocker(Context context, AttributeSet attrs) {
         super(context, attrs);
-
-
         init(context,attrs);
-
-
-
-
     }
 
     public JRocker(Context context) {
@@ -111,16 +106,29 @@ public class JRocker extends View  {
         init(context,null);
     }
 
-    /**
-     * 等重构再说。。。
-     * @param widthMeasureSpec
-     * @param heightMeasureSpec
-     */
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int mode=MeasureSpec.getMode(widthMeasureSpec);
+        int width=2*padRadius+2*rockerRadius;
+        int height=2*padRadius+2*rockerRadius;
+        setMeasuredDimension(width,height);
     }
+
+    public int measureDimension(int defaultSize, int measureSpec){
+        int result;
+
+        int specMode = MeasureSpec.getMode(measureSpec);
+        int specSize = MeasureSpec.getSize(measureSpec);
+
+        if(specMode == MeasureSpec.EXACTLY){
+            result = specSize;
+        }else{
+            result = defaultSize;   //UNSPECIFIED
+        }
+        return result;
+    }
+
 
     @Override
     protected void onDraw(Canvas canvas) {

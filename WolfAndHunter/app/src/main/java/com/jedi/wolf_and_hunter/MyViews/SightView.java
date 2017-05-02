@@ -48,11 +48,11 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
     public boolean needMove = false;
     //以下为视点基本共有属性
     public boolean hasUpdatedPosition = false;
-    public int centerX, centerY;
-    public int nowLeft;
-    public int nowTop;
-    public int nowRight;
-    public int nowBottom;
+    public int centerX=-1, centerY=-1;
+    public int nowLeft=-1;
+    public int nowTop=-1;
+    public int nowRight=-1;
+    public int nowBottom=-1;
     public double directionAngle;
     public int speed = 15;
     public int sightSize;
@@ -96,8 +96,22 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
         mHolder.addCallback(this);
         //以下两句必须在构造方法里做，否则各种奇妙poorguy
         mHolder.setFormat(PixelFormat.TRANSLUCENT);
-
         setZOrderOnTop(true);
+
+        if(nowLeft<0||nowTop<0){
+            nowLeft=0;
+            nowTop=0;
+            nowRight=sightSize;
+            nowBottom=sightSize;
+        }
+        mLayoutParams=(FrameLayout.LayoutParams)getLayoutParams();
+        if(mLayoutParams==null)
+            mLayoutParams=new FrameLayout.LayoutParams(sightSize,sightSize);
+        mLayoutParams.leftMargin=nowLeft;
+        mLayoutParams.topMargin=nowTop;
+        this.setLayoutParams(mLayoutParams);
+        centerX = nowLeft + (sightSize) / 2;
+        centerY = nowTop + (sightSize) / 2;
     }
 
     public FrameLayout.LayoutParams getmLayoutParams() {

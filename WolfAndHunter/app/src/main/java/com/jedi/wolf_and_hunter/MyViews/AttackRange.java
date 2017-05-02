@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -32,11 +33,13 @@ public class AttackRange extends View {
         super(context);
         if(GameBaseAreaActivity.myCharacter!=null)
             bindingCharacter=GameBaseAreaActivity.myCharacter;
+        GameBaseAreaActivity.myCharacter.attackRange=this;
         init();
     }
     public AttackRange(Context context, BaseCharacterView character) {
         super(context);
         bindingCharacter=character;
+        character.attackRange=this;
         init();
     }
 
@@ -84,5 +87,15 @@ public class AttackRange extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawCircle(nowAttackRadius,nowAttackRadius,nowAttackRadius,borderPaint);
+
+        double cosAlpha=Math.cos(Math.toRadians(bindingCharacter.nowFacingAngle));
+        double endX=cosAlpha*nowAttackRadius;
+
+        double endY=Math.sqrt(nowAttackRadius*nowAttackRadius-endX*endX);
+        if(bindingCharacter.nowFacingAngle>=180)
+            endY=-endY;
+        endX=endX+nowAttackRadius;
+        endY=endY+nowAttackRadius;
+        canvas.drawLine(nowAttackRadius,nowAttackRadius,(int)endX,(int)endY,borderPaint);
     }
 }

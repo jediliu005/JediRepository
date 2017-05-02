@@ -40,6 +40,7 @@ public class ViewRange extends View {
     public ViewRange(Context context, BaseCharacterView character) {
         super(context);
         bindingCharacter=character;
+        character.viewRange=this;
         init();
     }
 

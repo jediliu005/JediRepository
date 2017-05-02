@@ -8,12 +8,12 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.FrameLayout;
 
+import com.jedi.wolf_and_hunter.AI.BaseAI;
 import com.jedi.wolf_and_hunter.MyViews.AttackRange;
 import com.jedi.wolf_and_hunter.MyViews.GameMap;
 import com.jedi.wolf_and_hunter.MyViews.LeftRocker;
 import com.jedi.wolf_and_hunter.MyViews.MapBaseFrame;
 import com.jedi.wolf_and_hunter.MyViews.RightRocker;
-import com.jedi.wolf_and_hunter.MyViews.SFViewRange;
 import com.jedi.wolf_and_hunter.MyViews.SightView;
 import com.jedi.wolf_and_hunter.MyViews.ViewRange;
 import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
@@ -38,7 +38,9 @@ public class GameBaseAreaActivity extends Activity {
     public static BaseCharacterView myCharacter;
     SightView mySight;
     public  GameHandler gameHandler=new GameHandler();
-    Timer timer = new Timer();
+    Timer timerForMyMoving = new Timer();
+    Timer timerForAI = new Timer();
+    Timer timerForOthersMoving = new Timer();
     Landform[][] landformses;
 
     private class MyTimerTask extends TimerTask {
@@ -58,17 +60,18 @@ public class GameBaseAreaActivity extends Activity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case ADD_ATTACT_RANGE:
-                    AttackRange attackRange = new AttackRange(context, myCharacter);
-                    myCharacter.attackRange = attackRange;
-                    mapBaseFrame.addView(attackRange);
+//                    if(myCharacter.attackRange==null) {
+//                        AttackRange attackRange = new AttackRange(context, myCharacter);
+//                        myCharacter.attackRange = attackRange;
+//                    }
+//                    mapBaseFrame.addView(myCharacter.attackRange);
                     break;
                 case ADD_VIEW_RANGE:
-                    ViewRange viewRange = new ViewRange(context, myCharacter);
-                    myCharacter.viewRange = viewRange;
-                    mapBaseFrame.addView(viewRange);
-//                    SFViewRange viewRange = new SFViewRange(context, myCharacter);
-//                    myCharacter.viewRange = viewRange;
-//                    mapBaseFrame.addView(viewRange);
+//                    if(myCharacter.viewRange==null) {
+//                        ViewRange viewRange = new ViewRange(context, myCharacter);
+//                        myCharacter.viewRange = viewRange;
+//                    }
+//                    mapBaseFrame.addView(myCharacter.viewRange);
                     break;
                 default:
 
@@ -138,84 +141,150 @@ public class GameBaseAreaActivity extends Activity {
                     myCharacter.viewRange.layoutParams.topMargin=myCharacter.viewRange.centerY-myCharacter.viewRange.nowViewRadius;
                     myCharacter.viewRange.setLayoutParams(myCharacter.viewRange.layoutParams);
 
-                    mapBaseFrame.invalidate();
+
 
 
                     Log.i("GBA", "Change  ended");
                 }
+                for(BaseCharacterView c:characters){
+                    c.mLayoutParams.leftMargin = c.nowLeft;
+                    c.mLayoutParams.topMargin = c.nowTop;
+
+
+                    c.changeState();
+                    c.setLayoutParams(c.mLayoutParams);
+
+
+//                    c.attackRange.centerX=c.centerX;
+//                    c.attackRange.centerY=c.centerY;
+//                    c.attackRange.layoutParams.leftMargin=c.attackRange.centerX-c.attackRange.nowAttackRadius;
+//                    c.attackRange.layoutParams.topMargin=c.attackRange.centerY-c.attackRange.nowAttackRadius;
+//                    c.attackRange.setLayoutParams(c.attackRange.layoutParams);
+//
+//                    c.viewRange.centerX=c.centerX;
+//                    c.viewRange.centerY=c.centerY;
+//                    c.viewRange.layoutParams.leftMargin=c.viewRange.centerX-c.viewRange.nowViewRadius;
+//                    c.viewRange.layoutParams.topMargin=c.viewRange.centerY-c.viewRange.nowViewRadius;
+//                    c.viewRange.setLayoutParams(c.viewRange.layoutParams);
+                }
+                mapBaseFrame.invalidate();
 
             }
 
         }
     }
 
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game_base_area);
-        ViewUtils.initWindowParams(this);
-
-        mapBaseFrame = (MapBaseFrame) findViewById(R.id.map_base_frame);
-//        mapBaseFrame.setWillNotDraw(false);
-        FrameLayout.LayoutParams paramsForMapBase = (FrameLayout.LayoutParams) mapBaseFrame.getLayoutParams();
-        paramsForMapBase.width = 2000;
-        paramsForMapBase.height = 1500;
-        mapBaseFrame.setLayoutParams(paramsForMapBase);
+    private void startAI(){
+        NormalHunter aiCharacter = new NormalHunter(this);
+        ViewRange viewRange= new ViewRange(this,aiCharacter);
+        AttackRange attackRange=new AttackRange(this,aiCharacter);
+        BaseAI ai1=new BaseAI(aiCharacter);
+        mapBaseFrame.addView(aiCharacter);
+        characters.add(aiCharacter);
+        timerForAI.scheduleAtFixedRate(ai1,0,30);
 
 
-//        map.getLayoutParams().width= FrameLayout.LayoutParams.MATCH_PARENT;
-//        map.getLayoutParams().height= FrameLayout.LayoutParams.MATCH_PARENT;
+
+    }
+
+    private  void addElementToMap() throws Exception{
 
 
-        landformses = new Landform[15][20];
+
+        int widthCount=mapBaseFrame.mapWidth/100;
+        int heightCount=mapBaseFrame.mapHeight/100;
+        landformses = new Landform[heightCount][widthCount];
         for (int i = 0; i < landformses.length; i++) {
             for (int j = 0; j < landformses[i].length; j++) {
                 if (Math.abs(i - j) % 3 == 0)
                     landformses[i][j] = new TallGrassland(this);
             }
         }
+
+
+        //添加地形
         GameMap map = new GameMap(this);
         mapBaseFrame.addView(map);
         map.landformses = landformses;
         map.addLandforms();
 
-
+        //添加我的角色
         myCharacter = new NormalHunter(this);
         myCharacter.gameHandler=gameHandler;
-
-        mapBaseFrame.addView(myCharacter);
+//        mapBaseFrame.addView(myCharacter);
         mapBaseFrame.myCharacter = myCharacter;
+        mapBaseFrame.addView(myCharacter);
+        mapBaseFrame.addView(myCharacter.attackRange);
+        mapBaseFrame.addView(myCharacter.viewRange);
 
+        //添加视点
         mySight = new SightView(this);
         mySight.sightSize = myCharacter.characterBodySize;
+        myCharacter.setSight(mySight);
+        myCharacter.changeRotate();
         mapBaseFrame.addView(mySight);
         mapBaseFrame.mySight = mySight;
-        FrameLayout.LayoutParams paramsForMySight = (FrameLayout.LayoutParams) mySight.getLayoutParams();
-        paramsForMySight.leftMargin = myCharacter.characterBodySize * 2;
-        paramsForMySight.topMargin = myCharacter.characterBodySize * 2;
-        mySight.setLayoutParams(paramsForMySight);
-        mapBaseFrame.mySight = mySight;
+
+
+        //添加摇杆
         leftRocker = (LeftRocker) this.findViewById(R.id.rocker_left);
-        leftRocker.getLayoutParams().width=300;
-        leftRocker.getLayoutParams().width=300;
         leftRocker.setBindingCharacter(myCharacter);
-
-        leftRocker.gameHandler = gameHandler;
         mapBaseFrame.leftRocker = leftRocker;
-
-
         rightRocker = (RightRocker) this.findViewById(R.id.rocker_right);
         rightRocker.setBindingCharacter(myCharacter);
         mapBaseFrame.rightRocker = rightRocker;
-        myCharacter.setSight(mySight);
-        timer.schedule(new MyTimerTask(), 20, 20);
+        leftRocker.bringToFront();
+        rightRocker.bringToFront();
+
+
+
+//        startAI();
+
+
+
+
+
+
 
     }
 
     @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_game_base_area);
+        ViewUtils.initWindowParams(this);
+        FrameLayout baseFrame=(FrameLayout) findViewById(R.id.baseFrame);
+        mapBaseFrame = new MapBaseFrame(this,1000,750);
+        baseFrame.addView(mapBaseFrame);
+        mapBaseFrame.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    addElementToMap();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+//        FrameLayout.LayoutParams paramsForMapBase = (FrameLayout.LayoutParams) mapBaseFrame.getLayoutParams();
+//        paramsForMapBase.width = 2000;
+//        paramsForMapBase.height = 1500;
+//        mapBaseFrame.setLayoutParams(paramsForMapBase);
+
+
+
+        //scheduleAtFixedRate后一次Task不以前一个Task执行完毕的时间为起点延时执行
+        timerForMyMoving.scheduleAtFixedRate(new MyTimerTask(), 20, 20);
+
+    }
+
+
+
+    @Override
     protected void onDestroy() {
-        timer.cancel();
+        timerForMyMoving.cancel();
+        timerForOthersMoving.cancel();
+        timerForAI.cancel();
         super.onDestroy();
     }
 }
