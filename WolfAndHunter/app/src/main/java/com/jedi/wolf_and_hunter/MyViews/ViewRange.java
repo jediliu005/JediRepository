@@ -26,8 +26,7 @@ public class ViewRange extends View {
     public int nowTop;
     public int nowRight;
     public int nowBottom;
-    public double nowFaceingRadian;
-    public double nowViewRadian;
+    public float nowViewAngle;
     public FrameLayout.LayoutParams layoutParams;
     BaseCharacterView bindingCharacter;
     Paint borderPaint;
@@ -75,6 +74,7 @@ public class ViewRange extends View {
             borderPaint.setStyle(Paint.Style.FILL);
             borderPaint.setStrokeWidth(5);
             borderPaint.setAntiAlias(true);
+            nowViewAngle=bindingCharacter.nowViewAngle;
         }
         if(this.getLayoutParams()==null){
             FrameLayout.LayoutParams layoutParams=new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);

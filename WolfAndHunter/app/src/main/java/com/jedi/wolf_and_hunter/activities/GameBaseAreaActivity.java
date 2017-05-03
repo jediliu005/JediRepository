@@ -33,7 +33,7 @@ public class GameBaseAreaActivity extends Activity {
     LeftRocker leftRocker;
     RightRocker rightRocker;
     Thread gameThread;
-    ArrayList<BaseCharacterView> characters = new ArrayList<BaseCharacterView>();
+    public static ArrayList<BaseCharacterView> allCharacters = new ArrayList<BaseCharacterView>();
     MapBaseFrame mapBaseFrame;
     public static BaseCharacterView myCharacter;
     SightView mySight;
@@ -126,7 +126,7 @@ public class GameBaseAreaActivity extends Activity {
                     myCharacter.centerY = myCharacter.nowTop + myCharacter.getHeight() / 2;
                     mySight.centerX = mySight.nowLeft + mySight.getWidth() / 2;
                     mySight.centerY = mySight.nowTop + mySight.getHeight() / 2;
-                    myCharacter.changeState();
+                    myCharacter.changeThisCharacterState();
                     myCharacter.changeRotate();
 
                     myCharacter.attackRange.centerX=myCharacter.centerX;
@@ -146,12 +146,13 @@ public class GameBaseAreaActivity extends Activity {
 
                     Log.i("GBA", "Change  ended");
                 }
-                for(BaseCharacterView c:characters){
+                for(BaseCharacterView c:allCharacters){
+                    if(c==myCharacter)
+                        continue;
+                    myCharacter.changeOtherCharacterState(c);
                     c.mLayoutParams.leftMargin = c.nowLeft;
                     c.mLayoutParams.topMargin = c.nowTop;
-
-
-                    c.changeState();
+                    c.changeThisCharacterState();
                     c.setLayoutParams(c.mLayoutParams);
 
 
@@ -179,9 +180,10 @@ public class GameBaseAreaActivity extends Activity {
         ViewRange viewRange= new ViewRange(this,aiCharacter);
         AttackRange attackRange=new AttackRange(this,aiCharacter);
         BaseAI ai1=new BaseAI(aiCharacter);
+
         mapBaseFrame.addView(aiCharacter);
-        characters.add(aiCharacter);
-        timerForAI.scheduleAtFixedRate(ai1,0,30);
+        allCharacters.add(aiCharacter);
+        timerForAI.scheduleAtFixedRate(ai1,0,300);
 
 
 
@@ -210,6 +212,8 @@ public class GameBaseAreaActivity extends Activity {
 
         //添加我的角色
         myCharacter = new NormalHunter(this);
+        allCharacters.add(myCharacter);
+        myCharacter.isMyCharacter=true;
         myCharacter.gameHandler=gameHandler;
 //        mapBaseFrame.addView(myCharacter);
         mapBaseFrame.myCharacter = myCharacter;
@@ -238,7 +242,7 @@ public class GameBaseAreaActivity extends Activity {
 
 
 
-//        startAI();
+        startAI();
 
 
 

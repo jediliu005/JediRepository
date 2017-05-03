@@ -2,8 +2,11 @@ package com.jedi.wolf_and_hunter.MyViews;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -32,10 +35,12 @@ public class JRocker extends View  {
     public GameBaseAreaActivity.GameHandler gameHandler;
     Point padCircleCenter=new Point();
     Point rockerCircleCenter=new Point();
-
+    static Bitmap fireBitmap;
     int startCenterX;
     int startCenterY;
-
+    int actionButtonLeft;
+    int actionButtonTop;
+    int actionButtonsWidth;
     int windowWidth;
     int windowHeight;
     public static int padRadius;
@@ -44,7 +49,7 @@ public class JRocker extends View  {
     Paint paintForPad;
     Paint paintForRocker;
     public boolean isHoldingRocker=false;
-    boolean isStop=false;
+    boolean readyToFire=false;
     public BaseCharacterView getBindingCharacter() {
         return bindingCharacter;
     }
@@ -67,6 +72,7 @@ public class JRocker extends View  {
             padRadius = (int) (windowWidth / 10);
             rockerRadius = (int) (padRadius / 1.3);
         }
+        actionButtonsWidth=(int)(padRadius/1.5);
         padCircleCenter.set(padRadius+rockerRadius,padRadius+rockerRadius);
         rockerCircleCenter.set(padRadius+rockerRadius,padRadius+rockerRadius);
 
@@ -84,14 +90,19 @@ public class JRocker extends View  {
         paintForRocker.setAntiAlias(true);
 
         FrameLayout.LayoutParams paramsForJRocker = ( FrameLayout.LayoutParams)getLayoutParams();
+        int realWidth=2*padRadius+2*rockerRadius;
         if(paramsForJRocker==null)
-            paramsForJRocker=new FrameLayout.LayoutParams(2*padRadius+2*rockerRadius,2*padRadius+2*rockerRadius);
+            paramsForJRocker=new FrameLayout.LayoutParams(realWidth,realWidth);
         else {
-            paramsForJRocker.height = 2*padRadius+2*rockerRadius;
-            paramsForJRocker.width = 2*padRadius+2*rockerRadius;
+            paramsForJRocker.height = realWidth;
+            paramsForJRocker.width = realWidth;
         }
-
-
+        if(fireBitmap==null) {
+            fireBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.fire);
+            Matrix matrix = new Matrix();
+            matrix.postScale((float)actionButtonsWidth / fireBitmap.getWidth(), (float)actionButtonsWidth / fireBitmap.getHeight());
+            fireBitmap = Bitmap.createBitmap(fireBitmap, 0, 0, fireBitmap.getWidth(), fireBitmap.getHeight(), matrix, true);
+        }
 
         //在这里，新版系统必须重新setLayoutParams才能成功调整,19不用，还是要加。。。
         this.setLayoutParams(paramsForJRocker);
@@ -110,8 +121,9 @@ public class JRocker extends View  {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int width=2*padRadius+2*rockerRadius;
-        int height=2*padRadius+2*rockerRadius;
+        int realWidth=2*padRadius+2*rockerRadius;
+        int width=realWidth;
+        int height=realWidth;
         setMeasuredDimension(width,height);
     }
 

@@ -1,6 +1,7 @@
 package com.jedi.wolf_and_hunter.MyViews;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Point;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -25,7 +26,8 @@ public class RightRocker extends JRocker  {
 
     public RightRocker(Context context, AttributeSet attrs) {
         super(context, attrs);
-
+        actionButtonLeft=0;
+        actionButtonTop=0;
         FrameLayout.LayoutParams params=( FrameLayout.LayoutParams)getLayoutParams();
         params.gravity= Gravity.TOP | Gravity.RIGHT;
     }
@@ -85,4 +87,10 @@ public class RightRocker extends JRocker  {
     }
 
 
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        canvas.drawBitmap(fireBitmap,0,0,null);
+
+    }
 }

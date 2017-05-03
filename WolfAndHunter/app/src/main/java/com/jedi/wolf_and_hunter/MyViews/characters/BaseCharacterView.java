@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.support.annotation.Px;
 import android.util.AttributeSet;
@@ -26,7 +27,10 @@ import com.jedi.wolf_and_hunter.MyViews.ViewRange;
 import com.jedi.wolf_and_hunter.MyViews.landform.Landform;
 import com.jedi.wolf_and_hunter.R;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
+import com.jedi.wolf_and_hunter.utils.MyMathsUtils;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
+
+import java.util.ArrayList;
 
 /**
  * Created by Administrator on 2017/3/13.
@@ -83,8 +87,11 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     int borderWidth;
     Paint normalPaint;
     Paint alphaPaint;
+    Paint transparentPaint;
     Paint textNormalPaint;
     Paint textAlphaPaint;
+    boolean isDead=false;
+    boolean isForceToBeSaw=false;
     public GameBaseAreaActivity.GameHandler gameHandler;
 
     public FrameLayout.LayoutParams getmLayoutParams() {
@@ -136,6 +143,16 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         textNormalPaint.setTextAlign(Paint.Align.CENTER);
         textNormalPaint.setTextSize(characterBodySize*2/3);
         textNormalPaint.setAntiAlias(true);
+
+
+        transparentPaint = new Paint();
+        transparentPaint.setColor(Color.BLACK);
+        transparentPaint.setStyle(Paint.Style.STROKE);
+        transparentPaint.setTextAlign(Paint.Align.CENTER);
+        transparentPaint.setTextSize(characterBodySize);
+        transparentPaint.setStrokeWidth(borderWidth);
+        transparentPaint.setAlpha(0);
+        transparentPaint.setAntiAlias(true);
 
 
         alphaPaint = new Paint();
@@ -362,7 +379,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
 
     }
-    public  void changeState(){
+    public  void changeThisCharacterState(){
 
         int x=(centerX-1)/100;
         int y=(centerY-1)/100;
@@ -386,6 +403,23 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
             lastLandform=null;
         }
     }
+
+    public  void changeOtherCharacterState(BaseCharacterView otherCharacter){
+       //处理隐身
+
+            boolean isInViewRange=isInViewRange(otherCharacter);
+            if(isInViewRange&&otherCharacter.nowHiddenLevel>0) {
+                if(otherCharacter.isForceToBeSaw==false)
+                    otherCharacter.isForceToBeSaw = true;
+            }else if(otherCharacter.isForceToBeSaw==true) {
+                otherCharacter.isForceToBeSaw = false;
+            }
+
+
+
+
+    }
+
     public void changeRotate() {
         int relateX = sight.centerX - this.centerX;
         int relateY = sight.centerY - this.centerY;
@@ -393,10 +427,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         double cos = relateX / Math.sqrt(relateX * relateX + relateY * relateY);
         double radian = Math.acos(cos);
 
-        nowFacingAngle = (float) (180 * radian / Math.PI);
-        if (relateY < 0)
-            nowFacingAngle = 360 - nowFacingAngle;
-        nowFacingAngle=nowFacingAngle;
+        nowFacingAngle=MyMathsUtils.getAngleBetweenX(relateX,relateY);
     }
 
 
@@ -450,6 +481,37 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 //    }
 
 
+    public boolean isInViewRange(BaseCharacterView otherCharacter){
+        boolean returnResult=false;
+
+        boolean isInCircle=MyMathsUtils.isInCircle(new Point(this.centerX
+                ,this.centerY)
+                ,this.viewRange.nowViewRadius
+                ,new Point(otherCharacter.centerX
+                        ,otherCharacter.centerY)
+        );
+        if(isInCircle){
+            int relateX=otherCharacter.centerX-this.centerX;
+            int relateY=otherCharacter.centerY-this.centerY;
+            double cosAlpha=relateX/Math.sqrt(relateX*relateX+relateY*relateY);
+            double alphaDegrees=Math.toDegrees(Math.acos(cosAlpha));
+            if(relateY<0)
+                alphaDegrees=360-alphaDegrees;
+            float startAngle=this.nowFacingAngle-this.nowViewAngle/2;
+            float endAngle=this.nowFacingAngle+this.nowViewAngle/2;
+            if(alphaDegrees>startAngle&&alphaDegrees<endAngle)
+                returnResult=true;
+            if(startAngle<0&&alphaDegrees>360+startAngle)
+                returnResult=true;
+            if(endAngle>360&&alphaDegrees<endAngle-360)
+                returnResult=true;
+
+        }
+        else
+            returnResult = false;
+
+        return returnResult;
+    }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -475,7 +537,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         @Override
         public void run() {
             isStop=false;
-
+            int i =0;
 
             while (!isStop) {
 
@@ -488,19 +550,37 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 //                    canvas.drawRect(aroundSize / 2, aroundSize / 2, aroundSize / 2 + characterBodySize, aroundSize / 2 + characterBodySize, paint);
 //                    canvas.drawCircle((characterBodySize + aroundSize) / 2, (characterBodySize + aroundSize) / 2, characterBodySize / 2, paint);
 //                    canvas.drawBitmap(arrowBitMap, characterBodySize + aroundSize / 2, (characterBodySize + aroundSize - arrowBitmapHeight) / 2, null);
+                    i++;
+                    if(i%90==89){
+                        isDead=false;
 
-                    if(nowHiddenLevel==0) {
+                    }
+                    if(isDead){
+                        canvas.drawColor(Color.RED);
+
+                        continue;
+                    }
+
+                    if(nowHiddenLevel==0||isForceToBeSaw) {
                         canvas.drawBitmap(characterPic,(int)(characterBodySize*0.15),(int)(characterBodySize*0.15),normalPaint);
                         canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
 //                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, normalPaint);
                         canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2-borderWidth, normalPaint);
                         canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, normalPaint);
                     }else{
-                        canvas.drawBitmap(characterPic,(int)(characterBodySize*0.15),(int)(characterBodySize*0.15),alphaPaint);
-                        canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+                        if(isMyCharacter) {
+                            canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), alphaPaint);
+                            canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
 //                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, alphaPaint);
-                        canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2-borderWidth, alphaPaint);
-                        canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, alphaPaint);
+                            canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, alphaPaint);
+                            canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, alphaPaint);
+                        }else{
+                            canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), transparentPaint);
+                            canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+                            canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, transparentPaint);
+                            canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, transparentPaint);
+
+                        }
                     }
                     } catch (Exception e) {
                     e.printStackTrace();
@@ -517,6 +597,10 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
             }
         }
+    }
+
+    public void judgeFire(){
+
     }
 
     @Override

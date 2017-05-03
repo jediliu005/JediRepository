@@ -1,6 +1,7 @@
 package com.jedi.wolf_and_hunter.MyViews;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Point;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -24,6 +25,8 @@ public class LeftRocker extends JRocker  {
     public LeftRocker(Context context, AttributeSet attrs) {
 
         super(context, attrs);
+        actionButtonLeft=(padRadius+rockerRadius)*2-actionButtonsWidth;
+        actionButtonTop=0;
 
         FrameLayout.LayoutParams params=( FrameLayout.LayoutParams)getLayoutParams();
         params.gravity= Gravity.TOP | Gravity.LEFT;
@@ -42,13 +45,22 @@ public class LeftRocker extends JRocker  {
 
             case MotionEvent.ACTION_DOWN:
 
-                if(MyMathsUtils.isInCircle(rockerCircleCenter,rockerRadius,new Point(x,y))) {
+                if(MyMathsUtils.isInRECT(actionButtonLeft,actionButtonTop
+                        ,actionButtonLeft+actionButtonsWidth,actionButtonTop+actionButtonsWidth
+                        ,new Point(x,y))){
+                    readyToFire=true;
+                }
+                else if(MyMathsUtils.isInCircle(rockerCircleCenter,rockerRadius,new Point(x,y))) {
                     isHoldingRocker = true;
                     startCenterX=x;
                     startCenterY=y;
                 }
                 break;
             case MotionEvent.ACTION_UP:
+                if(readyToFire){
+                    GameBaseAreaActivity.myCharacter.judgeFire();
+                    readyToFire=false;
+                }
                 isHoldingRocker=false;
                 distance=0;
                 rockerCircleCenter.set(padCircleCenter.x,padCircleCenter.y);
@@ -82,6 +94,11 @@ public class LeftRocker extends JRocker  {
 
         return true;
     }
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        canvas.drawBitmap(fireBitmap,actionButtonLeft,actionButtonTop,null);
 
+    }
 
 }
