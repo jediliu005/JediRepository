@@ -47,31 +47,33 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     public boolean needMove = false;
     public boolean needTurned = false;
     //以下为角色基本共有属性
-    public boolean hasUpdatedPosition=false;
-    public int centerX=-1, centerY=-1;
-    public int nowLeft=-1;
-    public int nowTop=-1;
-    public int nowRight=-1;
-    public int nowBottom=-1;
+    public boolean hasUpdatedPosition = false;
+    public int centerX = -1, centerY = -1;
+    public int nowLeft = -1;
+    public int nowTop = -1;
+    public int nowRight = -1;
+    public int nowBottom = -1;
     public float nowFacingAngle;
-    public float nowViewAngle=90;
+    public float nowViewAngle = 90;
     public int characterBodySize;
-    public boolean isMyCharacter=false;
-    public int nowHiddenLevel=0;
+    public boolean isMyCharacter = false;
+    public int nowHiddenLevel = 0;
     public static final int HIDDEN_LEVEL_NO_HIDDEN = 0;
     public static final int HIDDEN_LEVEL_LOW_HIDDEN = 1;
     public static final int HIDDEN_LEVEL_HIGHT_HIDDEN = 2;
     public static final int HIDDEN_LEVEL_ABSOLUTE_HIDDEN = 3;
-    public  final int defaultHiddenLevel=HIDDEN_LEVEL_NO_HIDDEN;
-    public  int nowAttackRadius=600;
-    public  int nowViewRadius=460;
+    public final int defaultHiddenLevel = HIDDEN_LEVEL_NO_HIDDEN;
+    public int nowAttackRadius = 600;
+    public int nowViewRadius = 460;
+    public int nowForceViewRadius = 200;
     public int speed = 10;
     public SightView sight;
     public AttackRange attackRange;
     public ViewRange viewRange;
-    public int lastEffectX=-1;
-    public int lastEffectY=-1;
+    public int lastEffectX = -1;
+    public int lastEffectY = -1;
     public Landform lastLandform;
+    public int teamID;
     //以下为绘图杂项
     public Bitmap characterPic;
     public Matrix matrixForCP;
@@ -90,8 +92,8 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     Paint transparentPaint;
     Paint textNormalPaint;
     Paint textAlphaPaint;
-    boolean isDead=false;
-    boolean isForceToBeSaw=false;
+    public boolean isDead = false;
+    public boolean isForceToBeSaw = false;
     public GameBaseAreaActivity.GameHandler gameHandler;
 
     public FrameLayout.LayoutParams getmLayoutParams() {
@@ -116,7 +118,8 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         super(context, attrs, defStyle);
         init();
     }
-//sight仅对玩家操控角色有意义，不在这里统一创建
+
+    //sight仅对玩家操控角色有意义，不在这里统一创建
     private void init() {
         ViewUtils.initWindowParams(getContext());
         DisplayMetrics dm = ViewUtils.windowsDisplayMetrics;
@@ -128,8 +131,8 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         //以下两句必须在构造方法里做，否则各种奇妙poorguy
         mHolder.setFormat(PixelFormat.TRANSLUCENT);
         setZOrderOnTop(true);
-        
-        borderWidth=5;
+
+        borderWidth = 5;
         normalPaint = new Paint();
         normalPaint.setColor(Color.BLACK);
         normalPaint.setStyle(Paint.Style.STROKE);
@@ -141,7 +144,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         textNormalPaint.setColor(Color.BLACK);
         textNormalPaint.setFakeBoldText(false);
         textNormalPaint.setTextAlign(Paint.Align.CENTER);
-        textNormalPaint.setTextSize(characterBodySize*2/3);
+        textNormalPaint.setTextSize(characterBodySize * 2 / 3);
         textNormalPaint.setAntiAlias(true);
 
 
@@ -168,7 +171,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         textAlphaPaint.setColor(Color.BLACK);
         textNormalPaint.setFakeBoldText(false);
         textAlphaPaint.setTextAlign(Paint.Align.CENTER);
-        int textSize=characterBodySize*2/3;
+        int textSize = characterBodySize * 2 / 3;
         textAlphaPaint.setTextSize(textSize);
         textAlphaPaint.setAlpha(50);
         textAlphaPaint.setAntiAlias(true);
@@ -187,8 +190,8 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 //        aroundSize = 2 * arrowBitmapWidth;
 
         mLayoutParams = (FrameLayout.LayoutParams) this.getLayoutParams();
-        if(mLayoutParams==null)
-            mLayoutParams=new FrameLayout.LayoutParams(characterBodySize,characterBodySize);
+        if (mLayoutParams == null)
+            mLayoutParams = new FrameLayout.LayoutParams(characterBodySize, characterBodySize);
 //        mLayoutParams.height = characterBodySize + aroundSize;
 //        mLayoutParams.width = characterBodySize + aroundSize;
 //        centerX = getLeft() + (characterBodySize + aroundSize) / 2;
@@ -199,19 +202,19 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
         }
 
-        if(nowLeft<0||nowTop<0){
-            nowLeft=100;
-            nowTop=100;
-            nowRight=nowLeft+characterBodySize;
-            nowBottom=nowTop+characterBodySize;
+        if (nowLeft < 0 || nowTop < 0) {
+            nowLeft = 100;
+            nowTop = 100;
+            nowRight = nowLeft + characterBodySize;
+            nowBottom = nowTop + characterBodySize;
         }
-        mLayoutParams.leftMargin=nowLeft;
-        mLayoutParams.topMargin=nowTop;
+        mLayoutParams.leftMargin = nowLeft;
+        mLayoutParams.topMargin = nowTop;
         this.setLayoutParams(mLayoutParams);
         centerX = nowLeft + (characterBodySize) / 2;
         centerY = nowTop + (characterBodySize) / 2;
-        new AttackRange(getContext(),this);
-        new ViewRange(getContext(),this);
+        new AttackRange(getContext(), this);
+        new ViewRange(getContext(), this);
 
 
     }
@@ -226,25 +229,25 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     }
 
     public void updateNowPosition() {
-        if(hasUpdatedPosition==true)
+        if (hasUpdatedPosition == true)
             return;
         nowLeft = getLeft();
         nowTop = getTop();
         nowRight = getRight();
-        nowBottom=getBottom();
-        hasUpdatedPosition=true;
+        nowBottom = getBottom();
+        hasUpdatedPosition = true;
     }
 
-    public  void masterModeOffsetLRTBParams() {
-        int nowOffX=offX;
-        int nowOffY=offY;
+    public void masterModeOffsetLRTBParams() {
+        int nowOffX = offX;
+        int nowOffY = offY;
 
 
         //根据设定速度修正位移量
         double offDistance = Math.sqrt(nowOffX * nowOffX + nowOffY * nowOffY);
-        int nowSpeed=speed;
-        if(offDistance< JRocker.padRadius*3/4)
-            nowSpeed=speed/2;
+        int nowSpeed = speed;
+        if (offDistance < JRocker.padRadius * 3 / 4)
+            nowSpeed = speed / 2;
 
         nowOffX = (int) (nowSpeed * nowOffX / offDistance);
         nowOffY = (int) (nowSpeed * nowOffY / offDistance);
@@ -257,9 +260,9 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
             e.printStackTrace();
         }
         nowLeft = nowLeft + nowOffX;
-        nowTop=nowTop+nowOffY;
+        nowTop = nowTop + nowOffY;
         nowRight = nowLeft + getWidth();
-        nowBottom=nowTop+getHeight();
+        nowBottom = nowTop + getHeight();
         //判定character位置修正是否在当前视窗内，若不在，根据sight和character位置修正视窗位置
         if (sight.isCharacterInWindow() == false) {
 
@@ -272,7 +275,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
             sight.keepDirectionAndMove(sight.nowWindowLeft, sight.nowWindowTop, sight.nowWindowRight, sight.nowWindowBottom);
 
-        }else if (sight.needMove == false)//当视点在屏幕内且右摇杆不在操作的时候，视点需要伴随角色平移
+        } else if (sight.needMove == false)//当视点在屏幕内且右摇杆不在操作的时候，视点需要伴随角色平移
         {
             sight.followCharacter(nowOffX, nowOffY);
         }
@@ -281,6 +284,34 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
 
     }
+
+    public void reactAIMove() {
+        int nowOffX = offX;
+        int nowOffY = offY;
+
+
+        //根据设定速度修正位移量
+        double offDistance = Math.sqrt(nowOffX * nowOffX + nowOffY * nowOffY);
+        int nowSpeed = speed;
+        if (offDistance > nowSpeed) {
+            nowOffX = (int) (nowSpeed * nowOffX / offDistance);
+            nowOffY = (int) (nowSpeed * nowOffY / offDistance);
+        }
+        //保证不超出父View边界
+        try {
+            nowOffX = ViewUtils.reviseOffX(this, (View) this.getParent(), nowOffX);
+
+            nowOffY = ViewUtils.reviseOffY(this, (View) this.getParent(), nowOffY);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        nowLeft = nowLeft + nowOffX;
+        nowTop = nowTop + nowOffY;
+        nowRight = nowLeft + getWidth();
+        nowBottom = nowTop + getHeight();
+
+    }
+
 
     //因更新不同步产生震动，懒得调了，废弃，留着玩儿
     @Deprecated
@@ -379,43 +410,56 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
 
     }
-    public  void changeThisCharacterState(){
 
-        int x=(centerX-1)/100;
-        int y=(centerY-1)/100;
-        if(x!=lastEffectX||y!=lastEffectY){
-            if(lastLandform!=null)
+    public void changeThisCharacterState() {
+
+        int x = (centerX - 1) / 100;
+        int y = (centerY - 1) / 100;
+        if (x != lastEffectX || y != lastEffectY) {
+            if (lastLandform != null)
                 lastLandform.removeEffect(this);
-            lastEffectX=x;
-            lastEffectY=y;
+            lastEffectX = x;
+            lastEffectY = y;
         }
-        if(GameMap.landformses!=null){
-            if(GameMap.landformses.length<=y||GameMap.landformses[y].length<=x)
+        if (GameMap.landformses != null) {
+            if (GameMap.landformses.length <= y || GameMap.landformses[y].length <= x)
                 return;
-            Landform landform=GameMap.landformses[y][x];
-            if(landform!=null) {
+            Landform landform = GameMap.landformses[y][x];
+            if (landform != null) {
                 landform.effect(this);
                 lastLandform = landform;
-            }else{
+            } else {
 
             }
-        }else{
-            lastLandform=null;
+        } else {
+            lastLandform = null;
         }
     }
 
-    public  void changeOtherCharacterState(BaseCharacterView otherCharacter){
-       //处理隐身
+    public void changeOtherCharacterState(BaseCharacterView otherCharacter) {
+        //处理隐身
 
-            boolean isInViewRange=isInViewRange(otherCharacter);
-            if(isInViewRange&&otherCharacter.nowHiddenLevel>0) {
-                if(otherCharacter.isForceToBeSaw==false)
-                    otherCharacter.isForceToBeSaw = true;
-            }else if(otherCharacter.isForceToBeSaw==true) {
-                otherCharacter.isForceToBeSaw = false;
+        boolean isInViewRange = isInViewRange(otherCharacter, nowViewRadius);
+        //在基本可视范围内
+        if (isInViewRange) {
+            //对方没有隐藏，直接可见
+            if (otherCharacter.nowHiddenLevel == HIDDEN_LEVEL_NO_HIDDEN) {
+                otherCharacter.isForceToBeSaw = true;
             }
-
-
+            //有隐身，判是否在强制可视范围内
+            else if (otherCharacter.nowHiddenLevel > HIDDEN_LEVEL_NO_HIDDEN) {
+                boolean isInForceViewRange = isInViewRange(otherCharacter, nowForceViewRadius);
+                if(isInForceViewRange){
+                    otherCharacter.isForceToBeSaw = true;
+                }else{
+                    otherCharacter.isForceToBeSaw = false;
+                }
+            }
+        }
+        //不在基本可视范围内
+        else if (otherCharacter.isForceToBeSaw == true) {
+            otherCharacter.isForceToBeSaw = false;
+        }
 
 
     }
@@ -427,7 +471,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         double cos = relateX / Math.sqrt(relateX * relateX + relateY * relateY);
         double radian = Math.acos(cos);
 
-        nowFacingAngle=MyMathsUtils.getAngleBetweenX(relateX,relateY);
+        nowFacingAngle = MyMathsUtils.getAngleBetweenXAxus(relateX, relateY);
     }
 
 
@@ -481,33 +525,32 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 //    }
 
 
-    public boolean isInViewRange(BaseCharacterView otherCharacter){
-        boolean returnResult=false;
+    public boolean isInViewRange(BaseCharacterView otherCharacter, int viewRadius) {
+        boolean returnResult = false;
 
-        boolean isInCircle=MyMathsUtils.isInCircle(new Point(this.centerX
-                ,this.centerY)
-                ,this.viewRange.nowViewRadius
-                ,new Point(otherCharacter.centerX
-                        ,otherCharacter.centerY)
+        boolean isInCircle = MyMathsUtils.isInCircle(new Point(this.centerX
+                        , this.centerY)
+                , viewRadius
+                , new Point(otherCharacter.centerX
+                        , otherCharacter.centerY)
         );
-        if(isInCircle){
-            int relateX=otherCharacter.centerX-this.centerX;
-            int relateY=otherCharacter.centerY-this.centerY;
-            double cosAlpha=relateX/Math.sqrt(relateX*relateX+relateY*relateY);
-            double alphaDegrees=Math.toDegrees(Math.acos(cosAlpha));
-            if(relateY<0)
-                alphaDegrees=360-alphaDegrees;
-            float startAngle=this.nowFacingAngle-this.nowViewAngle/2;
-            float endAngle=this.nowFacingAngle+this.nowViewAngle/2;
-            if(alphaDegrees>startAngle&&alphaDegrees<endAngle)
-                returnResult=true;
-            if(startAngle<0&&alphaDegrees>360+startAngle)
-                returnResult=true;
-            if(endAngle>360&&alphaDegrees<endAngle-360)
-                returnResult=true;
+        if (isInCircle) {
+            int relateX = otherCharacter.centerX - this.centerX;
+            int relateY = otherCharacter.centerY - this.centerY;
+            double cosAlpha = relateX / Math.sqrt(relateX * relateX + relateY * relateY);
+            double alphaDegrees = Math.toDegrees(Math.acos(cosAlpha));
+            if (relateY < 0)
+                alphaDegrees = 360 - alphaDegrees;
+            float startAngle = this.nowFacingAngle - this.nowViewAngle / 2;
+            float endAngle = this.nowFacingAngle + this.nowViewAngle / 2;
+            if (alphaDegrees > startAngle && alphaDegrees < endAngle)
+                returnResult = true;
+            if (startAngle < 0 && alphaDegrees > 360 + startAngle)
+                returnResult = true;
+            if (endAngle > 360 && alphaDegrees < endAngle - 360)
+                returnResult = true;
 
-        }
-        else
+        } else
             returnResult = false;
 
         return returnResult;
@@ -522,8 +565,6 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 //        holder.setFormat(PixelFormat.TRANSLUCENT);
 
 
-
-
 //        this.setLayoutParams(mLayoutParams);
 //        gameHandler.sendEmptyMessage(GameBaseAreaActivity.GameHandler.ADD_ATTACT_RANGE);
 //        gameHandler.sendEmptyMessage(GameBaseAreaActivity.GameHandler.ADD_VIEW_RANGE);
@@ -536,8 +577,8 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
         @Override
         public void run() {
-            isStop=false;
-            int i =0;
+            isStop = false;
+            int i = 0;
 
             while (!isStop) {
 
@@ -551,30 +592,30 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 //                    canvas.drawCircle((characterBodySize + aroundSize) / 2, (characterBodySize + aroundSize) / 2, characterBodySize / 2, paint);
 //                    canvas.drawBitmap(arrowBitMap, characterBodySize + aroundSize / 2, (characterBodySize + aroundSize - arrowBitmapHeight) / 2, null);
                     i++;
-                    if(i%90==89){
-                        isDead=false;
+                    if (i % 90 == 89) {
+                        isDead = false;
 
                     }
-                    if(isDead){
+                    if (isDead) {
                         canvas.drawColor(Color.RED);
 
                         continue;
                     }
 
-                    if(nowHiddenLevel==0||isForceToBeSaw) {
-                        canvas.drawBitmap(characterPic,(int)(characterBodySize*0.15),(int)(characterBodySize*0.15),normalPaint);
+                    if (nowHiddenLevel == HIDDEN_LEVEL_NO_HIDDEN || isForceToBeSaw) {
+                        canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), normalPaint);
                         canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
 //                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, normalPaint);
-                        canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2-borderWidth, normalPaint);
+                        canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, normalPaint);
                         canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, normalPaint);
-                    }else{
-                        if(isMyCharacter) {
+                    } else {
+                        if (isMyCharacter) {
                             canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), alphaPaint);
                             canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
 //                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, alphaPaint);
                             canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, alphaPaint);
                             canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, alphaPaint);
-                        }else{
+                        } else {
                             canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), transparentPaint);
                             canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
                             canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, transparentPaint);
@@ -582,7 +623,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
                         }
                     }
-                    } catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
                     if (canvas != null) {
@@ -599,7 +640,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         }
     }
 
-    public void judgeFire(){
+    public void judgeFire() {
 
     }
 

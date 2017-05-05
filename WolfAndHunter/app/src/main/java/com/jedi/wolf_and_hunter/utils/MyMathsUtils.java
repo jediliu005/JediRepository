@@ -69,7 +69,7 @@ public class MyMathsUtils {
      * @param relateY 相对Y轴坐标的相对距离
      * @return 相对X轴的夹角[0-360)
      */
-    public static float getAngleBetweenX(int relateX,int relateY){
+    public static float getAngleBetweenXAxus(int relateX,int relateY){
 
         double cos = relateX / Math.sqrt(relateX * relateX + relateY * relateY);
         double radian = Math.acos(cos);

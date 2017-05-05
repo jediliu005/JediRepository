@@ -33,13 +33,13 @@ public class GameBaseAreaActivity extends Activity {
     LeftRocker leftRocker;
     RightRocker rightRocker;
     Thread gameThread;
-    public static ArrayList<BaseCharacterView> allCharacters = new ArrayList<BaseCharacterView>();
-    MapBaseFrame mapBaseFrame;
+    public static ArrayList<BaseCharacterView> allCharacters ;
+    public static MapBaseFrame mapBaseFrame;
     public static BaseCharacterView myCharacter;
     SightView mySight;
     public  GameHandler gameHandler=new GameHandler();
     Timer timerForMyMoving = new Timer();
-    Timer timerForAI = new Timer();
+    ArrayList<Timer>  timerForAIList = new ArrayList<Timer>();
     Timer timerForOthersMoving = new Timer();
     Landform[][] landformses;
 
@@ -149,24 +149,29 @@ public class GameBaseAreaActivity extends Activity {
                 for(BaseCharacterView c:allCharacters){
                     if(c==myCharacter)
                         continue;
-                    myCharacter.changeOtherCharacterState(c);
+                    c.reactAIMove();
+                    c.offX=0;
+                    c.offY=0;
                     c.mLayoutParams.leftMargin = c.nowLeft;
                     c.mLayoutParams.topMargin = c.nowTop;
+                    c.centerX=c.nowLeft+c.getWidth()/2;
+                    c.centerY=c.nowTop+c.getHeight()/2;
                     c.changeThisCharacterState();
+                    myCharacter.changeOtherCharacterState(c);
                     c.setLayoutParams(c.mLayoutParams);
 
 
-//                    c.attackRange.centerX=c.centerX;
-//                    c.attackRange.centerY=c.centerY;
-//                    c.attackRange.layoutParams.leftMargin=c.attackRange.centerX-c.attackRange.nowAttackRadius;
-//                    c.attackRange.layoutParams.topMargin=c.attackRange.centerY-c.attackRange.nowAttackRadius;
-//                    c.attackRange.setLayoutParams(c.attackRange.layoutParams);
-//
-//                    c.viewRange.centerX=c.centerX;
-//                    c.viewRange.centerY=c.centerY;
-//                    c.viewRange.layoutParams.leftMargin=c.viewRange.centerX-c.viewRange.nowViewRadius;
-//                    c.viewRange.layoutParams.topMargin=c.viewRange.centerY-c.viewRange.nowViewRadius;
-//                    c.viewRange.setLayoutParams(c.viewRange.layoutParams);
+                    c.attackRange.centerX=c.centerX;
+                    c.attackRange.centerY=c.centerY;
+                    c.attackRange.layoutParams.leftMargin=c.attackRange.centerX-c.attackRange.nowAttackRadius;
+                    c.attackRange.layoutParams.topMargin=c.attackRange.centerY-c.attackRange.nowAttackRadius;
+                    c.attackRange.setLayoutParams(c.attackRange.layoutParams);
+
+                    c.viewRange.centerX=c.centerX;
+                    c.viewRange.centerY=c.centerY;
+                    c.viewRange.layoutParams.leftMargin=c.viewRange.centerX-c.viewRange.nowViewRadius;
+                    c.viewRange.layoutParams.topMargin=c.viewRange.centerY-c.viewRange.nowViewRadius;
+                    c.viewRange.setLayoutParams(c.viewRange.layoutParams);
                 }
                 mapBaseFrame.invalidate();
 
@@ -179,18 +184,21 @@ public class GameBaseAreaActivity extends Activity {
         NormalHunter aiCharacter = new NormalHunter(this);
         ViewRange viewRange= new ViewRange(this,aiCharacter);
         AttackRange attackRange=new AttackRange(this,aiCharacter);
+        mapBaseFrame.addView(viewRange);
+        mapBaseFrame.addView(attackRange);
         BaseAI ai1=new BaseAI(aiCharacter);
 
         mapBaseFrame.addView(aiCharacter);
         allCharacters.add(aiCharacter);
-        timerForAI.scheduleAtFixedRate(ai1,0,300);
+        Timer timerForAI=new Timer("AIPlayer1",true);
+        timerForAI.scheduleAtFixedRate(ai1,0,50);
+        timerForAIList.add(timerForAI);
 
 
 
     }
 
     private  void addElementToMap() throws Exception{
-
 
 
         int widthCount=mapBaseFrame.mapWidth/100;
@@ -211,6 +219,7 @@ public class GameBaseAreaActivity extends Activity {
         map.addLandforms();
 
         //添加我的角色
+        allCharacters= new ArrayList<BaseCharacterView>();
         myCharacter = new NormalHunter(this);
         allCharacters.add(myCharacter);
         myCharacter.isMyCharacter=true;
@@ -270,6 +279,7 @@ public class GameBaseAreaActivity extends Activity {
                 }
             }
         });
+        allCharacters= new ArrayList<BaseCharacterView>();
 //        FrameLayout.LayoutParams paramsForMapBase = (FrameLayout.LayoutParams) mapBaseFrame.getLayoutParams();
 //        paramsForMapBase.width = 2000;
 //        paramsForMapBase.height = 1500;
@@ -288,7 +298,9 @@ public class GameBaseAreaActivity extends Activity {
     protected void onDestroy() {
         timerForMyMoving.cancel();
         timerForOthersMoving.cancel();
-        timerForAI.cancel();
+        for(Timer timer:timerForAIList) {
+            timer.cancel();
+        }
         super.onDestroy();
     }
 }

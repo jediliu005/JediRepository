@@ -42,13 +42,22 @@ public class RightRocker extends JRocker  {
         {
             case MotionEvent.ACTION_DOWN:
 
-                if(MyMathsUtils.isInCircle(rockerCircleCenter,rockerRadius,new Point(x,y))) {
+                if(MyMathsUtils.isInRECT(actionButtonLeft,actionButtonTop
+                        ,actionButtonLeft+actionButtonsWidth,actionButtonTop+actionButtonsWidth
+                        ,new Point(x,y))){
+                    readyToFire=true;
+                }
+                else if(MyMathsUtils.isInCircle(rockerCircleCenter,rockerRadius,new Point(x,y))) {
                     isHoldingRocker = true;
                     startCenterX=x;
                     startCenterY=y;
                 }
                 break;
             case MotionEvent.ACTION_UP:
+                if(readyToFire){
+                    GameBaseAreaActivity.myCharacter.judgeFire();
+                    readyToFire=false;
+                }
                 isHoldingRocker=false;
                 distance=0;
                 rockerCircleCenter.set(padCircleCenter.x,padCircleCenter.y);

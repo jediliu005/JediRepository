@@ -18,7 +18,7 @@ import com.jedi.wolf_and_hunter.utils.MyMathsUtils;
 public class NormalHunter extends BaseCharacterView {
     private static final String TAG = "NormalHunter";
     private final static String characterName="普通猎人";
-    private int bolletWidth=3;
+    private int bolletWidth=1;
     BitmapFactory.Options option=new BitmapFactory.Options();
     {option.inScaled=false;}
     public static final int defaultHiddenLevel=BaseCharacterView.HIDDEN_LEVEL_NO_HIDDEN;
@@ -49,8 +49,8 @@ public class NormalHunter extends BaseCharacterView {
             int relateX=targetCharacter.centerX-centerX;
             int relateY=targetCharacter.centerY-centerY;
 
-            float angleBetweenX = MyMathsUtils.getAngleBetweenX(relateX,relateY);
-            float relateAngle=Math.abs(angleBetweenX-nowFacingAngle);
+            float angleBetweenXAxus = MyMathsUtils.getAngleBetweenXAxus(relateX,relateY);
+            float relateAngle=Math.abs(angleBetweenXAxus-nowFacingAngle);
             boolean isInFrontOfCharacter=true;
             if(relateAngle>90&&relateAngle<270)
                 isInFrontOfCharacter=false;

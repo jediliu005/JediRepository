@@ -112,7 +112,8 @@ public class MapBaseFrame extends FrameLayout {
     }
 
     public boolean onTouchEvent(MotionEvent event) {
-
+        if(leftRocker==null||rightRocker==null)
+            return true;
 
         //获取到手指处的横坐标和纵坐标
         int x = (int) event.getX();
@@ -121,6 +122,7 @@ public class MapBaseFrame extends FrameLayout {
         int offY ;
 
         switch(event.getAction()) {
+
             case MotionEvent.ACTION_DOWN:
 
                 lastX = x;
