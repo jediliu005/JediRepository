@@ -26,9 +26,11 @@ public class AttackRange extends View {
     public int nowTop;
     public int nowRight;
     public int nowBottom;
+    public boolean isHidden;
     public FrameLayout.LayoutParams layoutParams;
     BaseCharacterView bindingCharacter;
     Paint borderPaint;
+    Paint transparentPaint;
     public AttackRange(Context context) {
         super(context);
         if(GameBaseAreaActivity.myCharacter!=null)
@@ -74,6 +76,11 @@ public class AttackRange extends View {
             borderPaint.setStyle(Paint.Style.STROKE);
             borderPaint.setStrokeWidth(5);
             borderPaint.setAntiAlias(true);
+
+            transparentPaint=new Paint();
+            transparentPaint.setAlpha(0);
+            transparentPaint.setStyle(Paint.Style.FILL);
+            transparentPaint.setStrokeWidth(5);
         }
         if(this.getLayoutParams()==null){
             FrameLayout.LayoutParams layoutParams=new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -86,7 +93,7 @@ public class AttackRange extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawCircle(nowAttackRadius,nowAttackRadius,nowAttackRadius,borderPaint);
+
 
         double cosAlpha=Math.cos(Math.toRadians(bindingCharacter.nowFacingAngle));
         double endX=cosAlpha*nowAttackRadius;
@@ -96,6 +103,12 @@ public class AttackRange extends View {
             endY=-endY;
         endX=endX+nowAttackRadius;
         endY=endY+nowAttackRadius;
-        canvas.drawLine(nowAttackRadius,nowAttackRadius,(int)endX,(int)endY,borderPaint);
+        if(isHidden){
+            canvas.drawCircle(nowAttackRadius,nowAttackRadius,nowAttackRadius,transparentPaint);
+            canvas.drawLine(nowAttackRadius,nowAttackRadius,(int)endX,(int)endY,transparentPaint);
+        }else{
+            canvas.drawCircle(nowAttackRadius,nowAttackRadius,nowAttackRadius,borderPaint);
+            canvas.drawLine(nowAttackRadius,nowAttackRadius,(int)endX,(int)endY,borderPaint);
+        }
     }
 }

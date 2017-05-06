@@ -31,6 +31,7 @@ import com.jedi.wolf_and_hunter.utils.MyMathsUtils;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Administrator on 2017/3/13.
@@ -38,7 +39,10 @@ import java.util.ArrayList;
 
 public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Callback {
     private static final String TAG = "BaseCharacterView";
-
+    public static final int HIDDEN_LEVEL_NO_HIDDEN = 0;
+    public static final int HIDDEN_LEVEL_LOW_HIDDEN = 1;
+    public static final int HIDDEN_LEVEL_HIGHT_HIDDEN = 2;
+    public static final int HIDDEN_LEVEL_ABSOLUTE_HIDDEN = 3;
     //以下为移动相关
     public int lastX;
     public int lastY;
@@ -58,10 +62,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     public int characterBodySize;
     public boolean isMyCharacter = false;
     public int nowHiddenLevel = 0;
-    public static final int HIDDEN_LEVEL_NO_HIDDEN = 0;
-    public static final int HIDDEN_LEVEL_LOW_HIDDEN = 1;
-    public static final int HIDDEN_LEVEL_HIGHT_HIDDEN = 2;
-    public static final int HIDDEN_LEVEL_ABSOLUTE_HIDDEN = 3;
+
     public final int defaultHiddenLevel = HIDDEN_LEVEL_NO_HIDDEN;
     public int nowAttackRadius = 600;
     public int nowViewRadius = 460;
@@ -93,8 +94,10 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     Paint textNormalPaint;
     Paint textAlphaPaint;
     public boolean isDead = false;
+    public boolean isHidden = false;
     public boolean isForceToBeSaw = false;
     public GameBaseAreaActivity.GameHandler gameHandler;
+    public ArrayList<BaseCharacterView> discoverMe;
 
     public FrameLayout.LayoutParams getmLayoutParams() {
         return mLayoutParams;
@@ -121,6 +124,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
     //sight仅对玩家操控角色有意义，不在这里统一创建
     private void init() {
+        discoverMe = new ArrayList<BaseCharacterView>();
         ViewUtils.initWindowParams(getContext());
         DisplayMetrics dm = ViewUtils.windowsDisplayMetrics;
         windowHeight = dm.heightPixels;
@@ -411,7 +415,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
     }
 
-    public void changeThisCharacterState() {
+    public void changeThisCharacterOnLandformses() {
 
         int x = (centerX - 1) / 100;
         int y = (centerY - 1) / 100;
@@ -445,13 +449,14 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
             //对方没有隐藏，直接可见
             if (otherCharacter.nowHiddenLevel == HIDDEN_LEVEL_NO_HIDDEN) {
                 otherCharacter.isForceToBeSaw = true;
+
             }
             //有隐身，判是否在强制可视范围内
             else if (otherCharacter.nowHiddenLevel > HIDDEN_LEVEL_NO_HIDDEN) {
                 boolean isInForceViewRange = isInViewRange(otherCharacter, nowForceViewRadius);
-                if(isInForceViewRange){
+                if (isInForceViewRange) {
                     otherCharacter.isForceToBeSaw = true;
-                }else{
+                } else {
                     otherCharacter.isForceToBeSaw = false;
                 }
             }
@@ -459,6 +464,16 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         //不在基本可视范围内
         else if (otherCharacter.isForceToBeSaw == true) {
             otherCharacter.isForceToBeSaw = false;
+        }
+
+
+        if(otherCharacter.isForceToBeSaw==true){
+            otherCharacter.viewRange.isHidden=false;
+            otherCharacter.attackRange.isHidden=true;
+        }else{
+            otherCharacter.viewRange.isHidden=true;
+            otherCharacter.attackRange.isHidden=true;
+
         }
 
 
@@ -602,27 +617,80 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
                         continue;
                     }
 
-                    if (nowHiddenLevel == HIDDEN_LEVEL_NO_HIDDEN || isForceToBeSaw) {
-                        canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), normalPaint);
-                        canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+//                    if(isHidden){
+//                        if (isMyCharacter) {
+//                            canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), alphaPaint);
+//                            canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+////                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, alphaPaint);
+//                            canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, alphaPaint);
+//                            canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, alphaPaint);
+//                        } else {
+//                            canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), transparentPaint);
+//                            canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+//                            canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, transparentPaint);
+//                            canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, transparentPaint);
+//
+//                        }
+//                    }else{
+//                        canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), normalPaint);
+//                        canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+////                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, normalPaint);
+//                        canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, normalPaint);
+//                        canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, normalPaint);
+//                    }
+                    if (isMyCharacter || teamID == GameBaseAreaActivity.myCharacter.teamID) {
+                        if (nowHiddenLevel == HIDDEN_LEVEL_NO_HIDDEN) {
+                            canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), normalPaint);
+                            canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
 //                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, normalPaint);
-                        canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, normalPaint);
-                        canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, normalPaint);
-                    } else {
-                        if (isMyCharacter) {
+                            canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, normalPaint);
+                            canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, normalPaint);
+
+                        } else if (nowHiddenLevel > HIDDEN_LEVEL_NO_HIDDEN) {
                             canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), alphaPaint);
                             canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
 //                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, alphaPaint);
                             canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, alphaPaint);
                             canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, alphaPaint);
+
+                        }
+                    } else {
+                        if (isForceToBeSaw) {
+                            canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), normalPaint);
+                            canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+//                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, normalPaint);
+                            canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, normalPaint);
+                            canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, normalPaint);
                         } else {
                             canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), transparentPaint);
                             canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
                             canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, transparentPaint);
                             canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, transparentPaint);
-
                         }
                     }
+
+
+//                    if (nowHiddenLevel == HIDDEN_LEVEL_NO_HIDDEN || isForceToBeSaw) {
+//                        canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), normalPaint);
+//                        canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+////                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, normalPaint);
+//                        canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, normalPaint);
+//                        canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, normalPaint);
+//                    } else {
+//                        if (isMyCharacter) {
+//                            canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), alphaPaint);
+//                            canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+////                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, alphaPaint);
+//                            canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, alphaPaint);
+//                            canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, alphaPaint);
+//                        } else {
+//                            canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), transparentPaint);
+//                            canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
+//                            canvas.drawCircle(characterBodySize / 2, characterBodySize / 2, characterBodySize / 2 - borderWidth, transparentPaint);
+//                            canvas.drawBitmap(arrowBitMap, characterBodySize - arrowBitmapWidth, (characterBodySize - arrowBitmapHeight) / 2, transparentPaint);
+//
+//                        }
+//                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {

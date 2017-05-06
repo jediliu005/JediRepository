@@ -126,7 +126,7 @@ public class GameBaseAreaActivity extends Activity {
                     myCharacter.centerY = myCharacter.nowTop + myCharacter.getHeight() / 2;
                     mySight.centerX = mySight.nowLeft + mySight.getWidth() / 2;
                     mySight.centerY = mySight.nowTop + mySight.getHeight() / 2;
-                    myCharacter.changeThisCharacterState();
+                    myCharacter.changeThisCharacterOnLandformses();
                     myCharacter.changeRotate();
 
                     myCharacter.attackRange.centerX=myCharacter.centerX;
@@ -156,7 +156,7 @@ public class GameBaseAreaActivity extends Activity {
                     c.mLayoutParams.topMargin = c.nowTop;
                     c.centerX=c.nowLeft+c.getWidth()/2;
                     c.centerY=c.nowTop+c.getHeight()/2;
-                    c.changeThisCharacterState();
+                    c.changeThisCharacterOnLandformses();
                     myCharacter.changeOtherCharacterState(c);
                     c.setLayoutParams(c.mLayoutParams);
 
@@ -182,6 +182,7 @@ public class GameBaseAreaActivity extends Activity {
 
     private void startAI(){
         NormalHunter aiCharacter = new NormalHunter(this);
+        aiCharacter.teamID=2;
         ViewRange viewRange= new ViewRange(this,aiCharacter);
         AttackRange attackRange=new AttackRange(this,aiCharacter);
         mapBaseFrame.addView(viewRange);
@@ -221,6 +222,7 @@ public class GameBaseAreaActivity extends Activity {
         //添加我的角色
         allCharacters= new ArrayList<BaseCharacterView>();
         myCharacter = new NormalHunter(this);
+        myCharacter.teamID=1;
         allCharacters.add(myCharacter);
         myCharacter.isMyCharacter=true;
         myCharacter.gameHandler=gameHandler;

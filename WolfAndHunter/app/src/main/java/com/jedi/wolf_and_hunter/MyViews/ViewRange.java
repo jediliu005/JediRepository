@@ -27,9 +27,11 @@ public class ViewRange extends View {
     public int nowRight;
     public int nowBottom;
     public float nowViewAngle;
+    public boolean isHidden;
     public FrameLayout.LayoutParams layoutParams;
     BaseCharacterView bindingCharacter;
     Paint borderPaint;
+    Paint transparentPaint;
     public ViewRange(Context context) {
         super(context);
         if(GameBaseAreaActivity.myCharacter!=null)
@@ -74,6 +76,11 @@ public class ViewRange extends View {
             borderPaint.setStyle(Paint.Style.FILL);
             borderPaint.setStrokeWidth(5);
             borderPaint.setAntiAlias(true);
+
+            transparentPaint=new Paint();
+            transparentPaint.setAlpha(0);
+            transparentPaint.setStyle(Paint.Style.FILL);
+            transparentPaint.setStrokeWidth(5);
             nowViewAngle=bindingCharacter.nowViewAngle;
         }
         if(this.getLayoutParams()==null){
@@ -88,7 +95,11 @@ public class ViewRange extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         float startAngle=bindingCharacter.nowFacingAngle-bindingCharacter.nowViewAngle/2;
-        canvas.drawArc(new RectF(0,0,2*nowViewRadius,2*nowViewRadius),startAngle,bindingCharacter.nowViewAngle,true,borderPaint);
+        if(isHidden){
+            canvas.drawArc(new RectF(0,0,2*nowViewRadius,2*nowViewRadius),startAngle,bindingCharacter.nowViewAngle,true,transparentPaint);
+        }else{
+            canvas.drawArc(new RectF(0,0,2*nowViewRadius,2*nowViewRadius),startAngle,bindingCharacter.nowViewAngle,true,borderPaint);
+        }
         invalidate();
 
     }
