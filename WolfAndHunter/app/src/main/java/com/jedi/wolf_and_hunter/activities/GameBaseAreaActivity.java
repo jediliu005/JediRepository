@@ -24,6 +24,7 @@ import com.jedi.wolf_and_hunter.R;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -181,19 +182,27 @@ public class GameBaseAreaActivity extends Activity {
     }
 
     private void startAI(){
-        NormalHunter aiCharacter = new NormalHunter(this);
-        aiCharacter.teamID=2;
-        ViewRange viewRange= new ViewRange(this,aiCharacter);
-        AttackRange attackRange=new AttackRange(this,aiCharacter);
-        mapBaseFrame.addView(viewRange);
-        mapBaseFrame.addView(attackRange);
-        BaseAI ai1=new BaseAI(aiCharacter);
+        for(int i=0;i<2;i++){
+            NormalHunter aiCharacter = new NormalHunter(this);
+            FrameLayout.LayoutParams c1LP=(FrameLayout.LayoutParams) aiCharacter.getLayoutParams();
+            c1LP.leftMargin=200+200*i;
+            c1LP.topMargin=200+200*i;
+            aiCharacter.nowFacingAngle=new Random().nextInt(359);
+            aiCharacter.setLayoutParams(c1LP);
+            aiCharacter.teamID=i+2;
+            ViewRange viewRange= new ViewRange(this,aiCharacter);
+            AttackRange attackRange=new AttackRange(this,aiCharacter);
+            mapBaseFrame.addView(viewRange);
+            mapBaseFrame.addView(attackRange);
+            BaseAI ai1=new BaseAI(aiCharacter);
 
-        mapBaseFrame.addView(aiCharacter);
-        allCharacters.add(aiCharacter);
-        Timer timerForAI=new Timer("AIPlayer1",true);
-        timerForAI.scheduleAtFixedRate(ai1,0,50);
-        timerForAIList.add(timerForAI);
+            mapBaseFrame.addView(aiCharacter);
+            allCharacters.add(aiCharacter);
+            Timer timerForAI=new Timer("AIPlayer1",true);
+            timerForAI.scheduleAtFixedRate(ai1,0,50);
+            timerForAIList.add(timerForAI);
+        }
+
 
 
 

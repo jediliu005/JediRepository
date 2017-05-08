@@ -49,7 +49,6 @@ public class BaseAI extends TimerTask {
     }
 
 
-
     public void addFacingThread() {
         if (facingThread == null) {
             facingThread = new Thread(new Runnable() {
@@ -125,20 +124,64 @@ public class BaseAI extends TimerTask {
 
     public void decideWhatToDo() {
 
-        boolean isDiscover = false;
+//        boolean isDiscover = false;
+        boolean isDiscoverByMe = false;
         boolean isInViewRange = false;
+
         for (BaseCharacterView character : GameBaseAreaActivity.allCharacters) {
-            if (character == bindingCharacter)
+            //忽略队友
+            if (character == bindingCharacter || character.teamID == bindingCharacter.teamID)
                 continue;
-            isInViewRange = bindingCharacter.isInViewRange(character,character.nowViewRadius);
-            if (isInViewRange == true && (character.nowHiddenLevel == 0 || character.isForceToBeSaw == true))
-                isDiscover = true;
-            if (isDiscover) {//发现目标，进入攻击状态
+            isInViewRange = bindingCharacter.isInViewRange(character, bindingCharacter.nowViewRadius);
+
+            if (isInViewRange == true ) {
+                if (character.nowHiddenLevel == 0)
+                    isDiscoverByMe = true;
+                else {
+                    boolean isInForceViewRange = bindingCharacter.isInViewRange(character, bindingCharacter.nowForceViewRadius);
+                    if (isInForceViewRange)
+                        isDiscoverByMe = true;
+
+                }
+            }
+            if (isDiscoverByMe == true) {//处理闯入本AI视觉范围的情况
+                if (character.seeMeTeamIDs.contains(bindingCharacter.teamID)) {//已经被AI本队发现
+                    if (character.theyDiscoverMe.contains(bindingCharacter) == false) {//第一发现人不是本AI
+                        character.theyDiscoverMe.add(bindingCharacter);
+                    }
+                } else {//本AI是第一发现人
+                    character.seeMeTeamIDs.add(bindingCharacter.teamID);
+                    character.theyDiscoverMe.add(bindingCharacter);
+
+                }
+            } else {//处理不在本AI视觉范围内的情况
+                if (character.seeMeTeamIDs.contains(bindingCharacter.teamID)) {//已经被AI本队发现
+                    if (character.theyDiscoverMe.contains(bindingCharacter)) {
+                        character.theyDiscoverMe.remove(bindingCharacter);
+                    }
+                    boolean hasMyTeammate = false;
+                    for (BaseCharacterView c : character.theyDiscoverMe) {
+                        if (c.teamID == bindingCharacter.teamID) {
+                            hasMyTeammate = true;
+                            break;
+                        }
+                    }
+                    if (hasMyTeammate == false) {
+                        character.seeMeTeamIDs.remove(bindingCharacter.teamID);
+                    }
+                }
+
+
+            }
+            if(character.seeMeTeamIDs.contains(bindingCharacter.teamID)){
                 targetCharacter = character;
                 initBeforeAttact();
                 intent = INTENT_ATTACK;
                 return;
-            } else {
+            }else {
+                if (targetCharacter!=null){
+                    intent = INTENT_TRACK;
+                }
                 if (hasDealTrackOnce == true || (targetLastX > 0 && targetLastY > 0)) {//处理被发现的目标突然消失的情况，执行追踪
 
                     intent = INTENT_TRACK;
@@ -148,6 +191,23 @@ public class BaseAI extends TimerTask {
                     intent = INTENT_HUNT;
                 }
             }
+
+
+//            if (isDiscover) {//发现目标，进入攻击状态
+//                targetCharacter = character;
+//                initBeforeAttact();
+//                intent = INTENT_ATTACK;
+//                return;
+//            } else {
+//                if (hasDealTrackOnce == true || (targetLastX > 0 && targetLastY > 0)) {//处理被发现的目标突然消失的情况，执行追踪
+//
+//                    intent = INTENT_TRACK;
+//
+//                } else {//没有目标或者目标丢失，改为狩猎模式
+//
+//                    intent = INTENT_HUNT;
+//                }
+//            }
         }
 
 
@@ -162,11 +222,11 @@ public class BaseAI extends TimerTask {
 
             int nowDistance = (int) MyMathsUtils.getDistance(new Point(targetCharacter.centerX, targetCharacter.centerY)
                     , new Point(bindingCharacter.centerX, bindingCharacter.centerY));
-            if (nowDistance > bindingCharacter.nowViewRadius) {
+            if (nowDistance > bindingCharacter.nowForceViewRadius) {
                 targetX = targetLastX;
                 targetY = targetLastY;
 
-            }else{
+            } else {
                 targetX = bindingCharacter.centerX;
                 targetY = bindingCharacter.centerY;
             }
@@ -177,7 +237,7 @@ public class BaseAI extends TimerTask {
         if (hasDealTrackOnce == false)
             hasDealTrackOnce = true;
 
-        if (bindingCharacter.nowFacingAngle==targetFacingAngle&&targetX == bindingCharacter.centerX & targetY == bindingCharacter.centerY) {
+        if (bindingCharacter.nowFacingAngle == targetFacingAngle && targetX == bindingCharacter.centerX & targetY == bindingCharacter.centerY) {
             hasDealTrackOnce = false;
 
         } else {
@@ -187,12 +247,13 @@ public class BaseAI extends TimerTask {
     }
 
     public void initBeforeAttact() {
-        targetX=-1;
-        targetY=-1;
+        targetX = -1;
+        targetY = -1;
         targetLastX = -1;
         targetLastY = -1;
         hasDealTrackOnce = false;
     }
+
     public void attack() {
         if (targetCharacter == null)
             return;
