@@ -1,4 +1,4 @@
-package com.jedi.wolf_and_hunter.MyViews;
+package com.jedi.wolf_and_hunter.myViews;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -14,7 +14,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
 
-import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
+import com.jedi.wolf_and_hunter.myViews.characters.BaseCharacterView;
 import com.jedi.wolf_and_hunter.R;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;

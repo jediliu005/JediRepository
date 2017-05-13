@@ -1,4 +1,4 @@
-package com.jedi.wolf_and_hunter.MyViews;
+package com.jedi.wolf_and_hunter.myViews;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,21 +8,20 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.support.annotation.Px;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.Window;
 import android.widget.FrameLayout;
 
-import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
+import com.jedi.wolf_and_hunter.myObj.MyVirtualWindow;
+import com.jedi.wolf_and_hunter.myViews.characters.BaseCharacterView;
 import com.jedi.wolf_and_hunter.R;
+import com.jedi.wolf_and_hunter.utils.MyMathsUtils;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
 /**
@@ -32,15 +31,16 @@ import com.jedi.wolf_and_hunter.utils.ViewUtils;
 public class SightView extends SurfaceView implements SurfaceHolder.Callback {
     public static final String TAG = "SurfaceView";
     //以下为移动相关
+    public MyVirtualWindow virtualWindow;
     int windowWidth;
     int windowHeight;
     //这四个是可视界面看做相对this.parent的View而的虚拟出来的LRTB
     public boolean hasUpdatedWindowPosition = false;
 
-    public int nowWindowLeft;
-    public int nowWindowRight;
-    public int nowWindowTop;
-    public int nowWindowBottom;
+//    public int virtualWindow.left;
+//    public int virtualWindow.right;
+//    public int virtualWindow.top;
+//    public int virtualWindow.bottom;
 
 
     public int offX;
@@ -53,7 +53,6 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
     public int nowTop=-1;
     public int nowRight=-1;
     public int nowBottom=-1;
-    public double directionAngle;
     public int speed = 15;
     public int sightSize;
     //以下为绘图杂项
@@ -66,8 +65,8 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
     public int sightBitmapHeight;
     public FrameLayout.LayoutParams mLayoutParams;
     public BaseCharacterView bindingCharacter;
-    Paint paint;
-
+    Paint transparentPaint;
+    public boolean isHidden;
 
     public SightView(Context context) {
         super(context);
@@ -114,43 +113,32 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
         centerY = nowTop + (sightSize) / 2;
     }
 
-    public FrameLayout.LayoutParams getmLayoutParams() {
-        return mLayoutParams;
-    }
 
-    public void setmLayoutParams(FrameLayout.LayoutParams mLayoutParams) {
-        this.mLayoutParams = mLayoutParams;
-    }
 
     public void goWatchingCharacter() {
         updateNowPosition();
-        updateNowWindowPosition();
-        int newWindowLeft = nowWindowLeft;
-        int newWindowTop = nowWindowTop;
-        if (bindingCharacter.nowLeft < nowWindowLeft)
+
+        int newWindowLeft = virtualWindow.left;
+        int newWindowTop = virtualWindow.top;
+        if (bindingCharacter.nowLeft < virtualWindow.left)
             newWindowLeft = bindingCharacter.nowLeft;
-        if (bindingCharacter.nowRight > nowWindowRight)
+        if (bindingCharacter.nowRight > virtualWindow.right)
             newWindowLeft = bindingCharacter.nowRight - windowWidth;
-        if (bindingCharacter.nowBottom > nowWindowBottom)
+        if (bindingCharacter.nowBottom > virtualWindow.bottom)
             newWindowTop = bindingCharacter.nowBottom - windowHeight;
-        if (bindingCharacter.nowTop < nowWindowTop)
+        if (bindingCharacter.nowTop < virtualWindow.top)
             newWindowTop = bindingCharacter.nowTop;
-        nowWindowLeft = newWindowLeft;
-        nowWindowTop = newWindowTop;
-        nowWindowRight = newWindowLeft + windowWidth;
-        nowWindowBottom = newWindowTop + windowHeight;
+        virtualWindow.targetLeft = newWindowLeft;
+        virtualWindow.targetTop = newWindowTop;
+        virtualWindow.targetRight = newWindowLeft + windowWidth;
+        virtualWindow.targetBottom = newWindowTop + windowHeight;
 
-//        offsetWindow(nowWindowLeft, nowWindowTop);
-
-
-//        if (nowWindowLeft != -parent.getLeft() || nowWindowTop != -parent.getTop())
-//            parent.layout(-nowWindowLeft, -nowWindowTop, -nowWindowLeft + parent.getWidth(), -nowWindowTop + parent.getHeight());
 
     }
 
     public void keepDirectionAndMove(int limitLeft, int limitTop, int limitRight, int limitBottom) {
         updateNowPosition();
-        updateNowWindowPosition();
+//        updateNowWindowPosition();
         int nowCharacterCenterX = (bindingCharacter.nowLeft + bindingCharacter.nowRight) / 2;
         int nowCharacterCenterY = (bindingCharacter.nowTop + bindingCharacter.nowBottom) / 2;
         int nowSightCenterX = (nowLeft + nowRight) / 2;
@@ -270,22 +258,13 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
         hasUpdatedPosition = true;
     }
 
-    public void updateNowWindowPosition() {
-        if (hasUpdatedWindowPosition == true)
-            return;
-        FrameLayout parent = (FrameLayout) this.getParent();
-        nowWindowLeft = -parent.getLeft();
-        nowWindowTop = -parent.getTop();
-        nowWindowRight = nowWindowLeft + windowWidth;
-        nowWindowBottom = nowWindowTop + windowHeight;
-        hasUpdatedWindowPosition = true;
-    }
+//    vir
 
     public boolean isCharacterInWindow() {
-        if (bindingCharacter.nowLeft < nowWindowLeft
-                || bindingCharacter.nowRight > nowWindowRight
-                || bindingCharacter.nowBottom > nowWindowBottom
-                || bindingCharacter.nowTop < nowWindowTop) {
+        if (bindingCharacter.nowLeft < virtualWindow.left
+                || bindingCharacter.nowRight > virtualWindow.right
+                || bindingCharacter.nowBottom > virtualWindow.bottom
+                || bindingCharacter.nowTop < virtualWindow.top) {
             return false;
         }
         return true;
@@ -293,11 +272,11 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
 
     public boolean isSightInWindow() {
         updateNowPosition();
-        updateNowWindowPosition();
-        if (this.nowLeft < nowWindowLeft
-                || this.nowRight > nowWindowRight
-                || this.nowBottom > nowWindowBottom
-                || this.nowTop < nowWindowTop) {
+//        updateNowWindowPosition();
+        if (this.nowLeft < virtualWindow.left
+                || this.nowRight > virtualWindow.right
+                || this.nowBottom > virtualWindow.bottom
+                || this.nowTop < virtualWindow.top) {
             return false;
         }
         return true;
@@ -305,7 +284,7 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void followCharacter(int CharacterOffX, int CharacterOffY) {
         updateNowPosition();
-        updateNowWindowPosition();
+//        updateNowWindowPosition();
         int followX = CharacterOffX;
         int followY = CharacterOffY;
 
@@ -317,26 +296,26 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
             nowRight = nowLeft + getWidth();
             nowTop = nowTop + followY;
             nowBottom = nowTop + getHeight();
-            if (nowLeft < nowWindowLeft) {
-                nowWindowLeft = nowLeft;
-                nowWindowRight = nowWindowLeft + windowWidth;
-            } else if (nowRight > nowWindowRight) {
-                nowWindowRight = nowRight;
-                nowWindowLeft = nowWindowRight - windowWidth;
+            if (nowLeft < virtualWindow.left) {
+                virtualWindow.targetLeft = nowLeft;
+                virtualWindow.targetRight = nowLeft + windowWidth;
+            } else if (nowRight > virtualWindow.right) {
+                virtualWindow.targetRight = nowRight;
+                virtualWindow.targetLeft = nowRight - windowWidth;
             }
-            if (nowTop < nowWindowTop) {
-                nowWindowTop = nowTop;
-                nowWindowBottom = nowWindowTop + windowHeight;
-            } else if (nowBottom > nowWindowBottom) {
-                nowWindowBottom = nowBottom;
-                nowWindowTop = nowWindowBottom - windowHeight;
+            if (nowTop < virtualWindow.top) {
+                virtualWindow.targetTop = nowTop;
+                virtualWindow.targetBottom = nowTop + windowHeight;
+            } else if (nowBottom > virtualWindow.bottom) {
+                virtualWindow.targetBottom = nowBottom;
+                virtualWindow.targetTop = nowBottom - windowHeight;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void offsetLRTBParams(boolean isMyCharacterMoving) {
+    public void masterModeOffsetLRTBParams(boolean isMyCharacterMoving) {
         int nowOffX = offX;
         int nowOffY = offY;
 
@@ -348,9 +327,9 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
             nowSpeed = speed / 3;
 
         updateNowPosition();
-        updateNowWindowPosition();
-        int oldWindowLeft = nowWindowLeft;
-        int oldWindowTop = nowWindowTop;
+//        updateNowWindowPosition();
+        int oldWindowLeft = virtualWindow.left;
+        int oldWindowTop = virtualWindow.top;
 
 
         nowOffX = (int) (nowSpeed * nowOffX / offDistance);
@@ -374,22 +353,75 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
                 movingNearCharacter();
             } else {
 
-                if (this.nowLeft < nowWindowLeft)
-                    nowWindowLeft = this.nowLeft;
-                if (this.nowRight > nowWindowRight)
-                    nowWindowLeft = this.nowRight - windowWidth;
-                if (this.nowTop < nowWindowTop)
-                    nowWindowTop = this.nowTop;
-                if (this.nowBottom > nowWindowBottom)
-                    nowWindowTop = this.nowBottom - windowHeight;
-                nowWindowRight = nowWindowLeft + windowWidth;
-                nowWindowBottom = nowWindowTop + windowHeight;
+                if (this.nowLeft < virtualWindow.left)
+                    virtualWindow.targetLeft = this.nowLeft;
+                if (this.nowRight > virtualWindow.right)
+                    virtualWindow.targetLeft = this.nowRight - windowWidth;
+                if (this.nowTop < virtualWindow.top)
+                    virtualWindow.targetTop = this.nowTop;
+                if (this.nowBottom > virtualWindow.bottom)
+                    virtualWindow.targetTop = this.nowBottom - windowHeight;
+                virtualWindow.targetRight = virtualWindow.left + windowWidth;
+                virtualWindow.targetBottom = virtualWindow.top + windowHeight;
             }
 
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        if (nowBottom > ((FrameLayout) getParent()).getHeight()) {
+            Log.i("", "");
+        }
+    }
+
+
+    public void normalModeOffsetLRTBParams() {
+        int nowOffX = offX;
+        int nowOffY = offY;
+        float targetFacingAngle=0;
+        if(nowOffX==0&&nowOffY==0)
+            return;
+        targetFacingAngle=MyMathsUtils.getAngleBetweenXAxus(nowOffX,nowOffY);
+        float relateAngle = targetFacingAngle - bindingCharacter.nowFacingAngle;
+        if (Math.abs(relateAngle) > 180) {//处理旋转最佳方向
+            if (relateAngle > 0)
+                relateAngle = relateAngle - 360;
+
+            else
+                relateAngle = 360 - relateAngle;
+        }
+        if (Math.abs(relateAngle) > bindingCharacter.angleChangSpeed)
+            relateAngle = Math.abs(relateAngle) / relateAngle * bindingCharacter.angleChangSpeed;
+
+        targetFacingAngle = bindingCharacter.nowFacingAngle + relateAngle;
+        bindingCharacter.nowFacingAngle=targetFacingAngle;
+        if (bindingCharacter.nowFacingAngle < 0)
+            bindingCharacter.nowFacingAngle = bindingCharacter.nowFacingAngle + 360;
+        else if (bindingCharacter.nowFacingAngle > 360)
+            bindingCharacter.nowFacingAngle = bindingCharacter.nowFacingAngle - 360;
+
+        int windowCenterX;
+        int windowCenterY;
+        int centerDistance=windowWidth/5;
+        windowCenterX=(int)(Math.cos(Math.toRadians(bindingCharacter.nowFacingAngle))*centerDistance)+(bindingCharacter.nowLeft+bindingCharacter.nowRight)/2;
+        windowCenterY=(int)(Math.sin(Math.toRadians(bindingCharacter.nowFacingAngle))*centerDistance)+(bindingCharacter.nowTop+bindingCharacter.nowBottom)/2;;
+        this.virtualWindow.targetLeft=windowCenterX-windowWidth/2;
+        this.virtualWindow.targetRight=virtualWindow.left+windowWidth;
+        this.virtualWindow.targetTop=windowCenterY-windowHeight/2;
+        this.virtualWindow.targetBottom=virtualWindow.top+windowHeight;
+
+        //这模式下sight隐藏，但跟随character
+        this.nowLeft=(bindingCharacter.nowLeft+bindingCharacter.nowRight+sightSize)/2;
+        this.nowRight=this.nowLeft+getWidth();
+        this.nowTop=(bindingCharacter.nowTop+bindingCharacter.nowBottom+sightSize)/2;
+        this.nowBottom=this.nowTop+getHeight();
+
+
+
+
+
+
 
         if (nowBottom > ((FrameLayout) getParent()).getHeight()) {
             Log.i("", "");
@@ -403,22 +435,22 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
             if (nowRight > bindingCharacter.nowLeft) {
                 nowRight = bindingCharacter.nowLeft + windowWidth;
                 nowLeft = nowRight - getWidth();
-                nowWindowRight = nowRight;
-                nowWindowLeft = nowRight - windowWidth;
+                virtualWindow.targetRight = nowRight;
+                virtualWindow.targetLeft = nowRight - windowWidth;
             } else if (nowLeft < bindingCharacter.nowRight) {
                 nowLeft = bindingCharacter.nowRight - windowWidth;
                 nowRight = nowLeft + getWidth();
-                nowWindowLeft = nowLeft;
-                nowWindowRight = nowWindowLeft + windowWidth;
+                virtualWindow.targetLeft = nowLeft;
+                virtualWindow.targetRight = nowLeft + windowWidth;
             }
         } else {
 
-            if (nowLeft < nowWindowLeft) {
-                nowWindowLeft = nowLeft;
-                nowWindowRight = nowWindowLeft + windowWidth;
-            } else if (nowRight > nowWindowRight) {
-                nowWindowRight = nowRight;
-                nowWindowLeft = nowWindowRight - windowWidth;
+            if (nowLeft < virtualWindow.left) {
+                virtualWindow.targetLeft = nowLeft;
+                virtualWindow.targetRight = nowLeft + windowWidth;
+            } else if (nowRight > virtualWindow.right) {
+                virtualWindow.targetRight = nowRight;
+                virtualWindow.targetLeft = nowRight - windowWidth;
             }
         }
 
@@ -427,22 +459,22 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
             if (nowBottom > bindingCharacter.nowTop) {
                 nowBottom = bindingCharacter.nowTop + windowHeight;
                 nowTop = nowBottom - getHeight();
-                nowWindowBottom = nowBottom;
-                nowWindowTop = nowWindowBottom - windowHeight;
+                virtualWindow.targetBottom = nowBottom;
+                virtualWindow.targetTop = nowBottom - windowHeight;
             } else if (nowTop < bindingCharacter.nowBottom) {
                 nowTop = bindingCharacter.nowBottom - windowHeight;
                 nowBottom = nowTop + getHeight();
-                nowWindowTop = nowTop;
-                nowWindowBottom = nowWindowTop + windowHeight;
+                virtualWindow.targetTop = nowTop;
+                virtualWindow.targetBottom = nowTop + windowHeight;
             }
         } else {
 
-            if (nowTop < nowWindowTop) {
-                nowWindowTop = nowTop;
-                nowWindowBottom = nowWindowTop + windowHeight;
-            } else if (nowBottom > nowWindowBottom) {
-                nowWindowBottom = nowBottom;
-                nowWindowTop = nowWindowBottom - windowHeight;
+            if (nowTop < virtualWindow.top) {
+                virtualWindow.targetTop = nowTop;
+                virtualWindow.targetBottom = nowTop + windowHeight;
+            } else if (nowBottom > virtualWindow.bottom) {
+                virtualWindow.targetBottom = nowBottom;
+                virtualWindow.targetTop = nowBottom - windowHeight;
             }
         }
 
@@ -450,129 +482,12 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
 
-    //此方法已废弃
-    @Deprecated
-    public void offsetLRTB(boolean isMyCharacterMoving) {
-        updateNowWindowPosition();
-        int oldWindowLeft = nowWindowLeft;
-        int oldWindowTop = nowWindowTop;
-        boolean canSeeCharacter = true;
-        if (bindingCharacter.getRight() < nowWindowLeft
-                || bindingCharacter.getLeft() > nowWindowRight
-                || bindingCharacter.getTop() > nowWindowBottom
-                || bindingCharacter.getBottom() < nowWindowTop)
-            canSeeCharacter = false;
-        if (isMyCharacterMoving && !canSeeCharacter) {
-            goWatchingCharacter();
-        }
-        double offDistance = Math.sqrt(offX * offX + offY * offY);
-        offX = (int) (speed * offX / offDistance);
-        offY = (int) (speed * offY / offDistance);
-
-        try {
-
-            //控制位置不超出父View
-//            offX = ViewUtils.reviseOffX(this, (View) this.getParent(), offX);
-//            offY = ViewUtils.reviseOffY(this, (View) this.getParent(), offY);
 
 
-            //控制位置不超出可视范围
 
-            if (this.getLeft() + offX < nowWindowLeft)
-                nowWindowLeft = this.getLeft() + offX;
-            if (this.getRight() + offX > nowWindowRight)
-                nowWindowLeft = this.getRight() + offX - windowWidth;
-            if (this.getTop() + offY < nowWindowTop)
-                nowWindowTop = this.getTop() + offY;
-            if (this.getBottom() + offY > nowWindowBottom)
-                nowWindowTop = this.getBottom() + offY - windowHeight;
-
-            nowWindowRight = nowWindowLeft + windowWidth;
-            nowWindowBottom = nowWindowTop + windowHeight;
-            if (nowWindowLeft != oldWindowLeft || nowWindowTop != oldWindowTop) {
-                offsetWindow(nowWindowLeft, nowWindowTop);
-            }
-//             transition(offX,offY);
-            offsetLeftAndRight(offX);
-            offsetTopAndBottom(offY);
-            getmLayoutParams().leftMargin = getLeft();
-            getmLayoutParams().topMargin = getTop();
-
-
-            if (nowWindowBottom - nowWindowTop != windowHeight || nowWindowRight - nowWindowLeft != windowWidth) {
-                Log.i("", "");
-            }
-            FrameLayout parent = (FrameLayout) getParent();
-            if (parent.getWidth() != 2000 || parent.getHeight() != 1500) {
-                Log.i("", "");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-    }
 
 
     @Deprecated
-    public void transition(@Px int offsetX, @Px int offsetY) {
-        if (needMove == false)
-            return;
-        int offSetSightX = offsetX;
-        int offSetSightY = offsetY;
-        try {
-            offSetSightX = ViewUtils.reviseOffX(this, (View) this.getParent(), offsetX);
-
-            offSetSightY = ViewUtils.reviseOffY(this, (View) this.getParent(), offsetY);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-        super.layout(getLeft() + offSetSightX, getTop() + offSetSightY, getRight() + offSetSightX, getBottom() + offSetSightY);
-        getmLayoutParams().leftMargin = getLeft();
-        getmLayoutParams().topMargin = getTop();
-        centerY = (getTop() + getBottom()) / 2;
-        centerX = (getLeft() + getRight()) / 2;
-
-
-    }
-
-    @Deprecated
-    @Override
-    public void offsetTopAndBottom(@Px int offset) {
-        if (needMove == false)
-            return;
-        //控制位置不超出父View
-        try {
-            offY = ViewUtils.reviseOffY(this, (View) this.getParent(), offset);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        super.offsetTopAndBottom(offY);
-
-        centerY = (getTop() + getBottom()) / 2;
-    }
-
-    @Deprecated
-    @Override
-    public void offsetLeftAndRight(@Px int offset) {
-        if (needMove == false)
-            return;
-        try {
-            offX = ViewUtils.reviseOffX(this, (View) this.getParent(), offset);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        super.offsetLeftAndRight(offX);
-
-        centerX = (getLeft() + getRight()) / 2;
-
-
-    }
-
     public void offsetWindow(int windowLeft, int windowTop) {
         FrameLayout parent = (FrameLayout) this.getParent();
         FrameLayout.LayoutParams parentParams = (FrameLayout.LayoutParams) parent.getLayoutParams();
@@ -638,11 +553,11 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
 
-        paint = new Paint();
-        paint.setColor(Color.WHITE);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(10);
-        paint.setAntiAlias(true);
+
+
+        transparentPaint = new Paint();
+        transparentPaint.setAlpha(0);
+
         sightBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.aim64);
         matrix = new Matrix();
 //         缩放原图
@@ -661,10 +576,10 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
         this.setLayoutParams(mLayoutParams);
 
 //        FrameLayout parent = (FrameLayout) this.getParent();
-//        nowWindowLeft = -parent.getLeft();
-//        nowWindowTop = -parent.getTop();
-//        nowWindowRight =  windowWidth- parent.getLeft();
-//        nowWindowBottom =  windowHeight- parent.getTop();
+//        virtualWindow.left = -parent.getLeft();
+//        virtualWindow.top = -parent.getTop();
+//        virtualWindow.right =  windowWidth- parent.getLeft();
+//        virtualWindow.bottom =  windowHeight- parent.getTop();
         Thread drawThread = new Thread(new SightDraw());
         drawThread.start();
     }
@@ -681,7 +596,10 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
                 Canvas canvas = getHolder().lockCanvas();
                 try {
                     canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//清除屏幕
-                    canvas.drawBitmap(sightBitmap, 0, 0, null);
+                    if(isHidden)
+                        canvas.drawBitmap(sightBitmap, 0, 0, transparentPaint);
+                    else
+                        canvas.drawBitmap(sightBitmap, 0, 0, null);
 
                 } catch (Exception e) {
                     e.printStackTrace();

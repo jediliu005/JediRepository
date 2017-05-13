@@ -1,16 +1,7 @@
-package com.jedi.wolf_and_hunter.MyViews;
+package com.jedi.wolf_and_hunter.myViews;
 
 import android.content.Context;
-import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.BitmapShader;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Shader;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.Handler;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,12 +9,10 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
-import com.jedi.wolf_and_hunter.MyViews.landform.Landform;
-import com.jedi.wolf_and_hunter.R;
+import com.jedi.wolf_and_hunter.myViews.characters.BaseCharacterView;
+import com.jedi.wolf_and_hunter.myViews.landform.Landform;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
@@ -55,6 +44,7 @@ public class MapBaseFrame extends FrameLayout {
         this.mapWidth=mapWidth;
         this.mapHeight=mapHeight;
         mLayoutParams=new LayoutParams(mapWidth,mapHeight);
+        this.setLayoutParams(mLayoutParams);
 
     }
 
@@ -147,6 +137,8 @@ public class MapBaseFrame extends FrameLayout {
                     int width=mLayoutParams.width;
                     mLayoutParams.leftMargin=movementArr[0];
                     mLayoutParams.topMargin=movementArr[1];
+                    GameBaseAreaActivity.virtualWindow.targetLeft=-movementArr[0];
+                    GameBaseAreaActivity.virtualWindow.targetTop=-movementArr[1];
                     this.setLayoutParams(mLayoutParams);
                 }
         }

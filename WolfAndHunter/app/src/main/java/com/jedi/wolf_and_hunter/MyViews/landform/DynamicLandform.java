@@ -1,17 +1,13 @@
-package com.jedi.wolf_and_hunter.MyViews.landform;
+package com.jedi.wolf_and_hunter.myViews.landform;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
-import com.jedi.wolf_and_hunter.utils.BitmapBox;
-
-import java.util.Map;
+import com.jedi.wolf_and_hunter.myViews.characters.BaseCharacterView;
 
 
 /**

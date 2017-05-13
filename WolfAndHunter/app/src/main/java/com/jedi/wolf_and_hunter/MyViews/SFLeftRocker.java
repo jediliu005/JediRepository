@@ -1,4 +1,4 @@
-package com.jedi.wolf_and_hunter.MyViews;
+package com.jedi.wolf_and_hunter.myViews;
 
 import android.content.Context;
 import android.graphics.Point;

@@ -1,4 +1,4 @@
-package com.jedi.wolf_and_hunter.MyViews;
+package com.jedi.wolf_and_hunter.myViews;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -8,22 +8,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.PixelFormat;
 import android.graphics.Point;
-import android.graphics.PorterDuff;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
+import com.jedi.wolf_and_hunter.myViews.characters.BaseCharacterView;
 import com.jedi.wolf_and_hunter.R;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
-import com.jedi.wolf_and_hunter.utils.MyMathsUtils;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
 
 /**
@@ -38,9 +31,9 @@ public class JRocker extends View  {
     static Bitmap fireBitmap;
     int startCenterX;
     int startCenterY;
-    int actionButtonLeft;
-    int actionButtonTop;
-    int actionButtonsWidth;
+//    int actionButtonLeft;
+//    int actionButtonTop;
+//    int actionButtonsWidth;
     int windowWidth;
     int windowHeight;
     public static int padRadius;
@@ -48,6 +41,8 @@ public class JRocker extends View  {
     double distance=0;
     Paint paintForPad;
     Paint paintForRocker;
+    Paint normalPaint;
+    int baselineY;
     public boolean isHoldingRocker=false;
     boolean readyToFire=false;
     public BaseCharacterView getBindingCharacter() {
@@ -72,7 +67,7 @@ public class JRocker extends View  {
             padRadius = (int) (windowWidth / 10);
             rockerRadius = (int) (padRadius / 1.3);
         }
-        actionButtonsWidth=(int)(padRadius/1.5);
+//        actionButtonsWidth=(int)(padRadius/1.5);
         padCircleCenter.set(padRadius+rockerRadius,padRadius+rockerRadius);
         rockerCircleCenter.set(padRadius+rockerRadius,padRadius+rockerRadius);
 
@@ -89,6 +84,14 @@ public class JRocker extends View  {
         paintForRocker.setAlpha(100);
         paintForRocker.setAntiAlias(true);
 
+//        normalPaint = new Paint();
+//        normalPaint.setTextSize(actionButtonsWidth/2);
+//        normalPaint.setColor(Color.WHITE);
+//        normalPaint.setStyle(Paint.Style.FILL);
+//        normalPaint.setAntiAlias(true);
+//        Paint.FontMetricsInt fontMetrics = normalPaint.getFontMetricsInt();
+//        baselineY = (actionButtonTop*2+actionButtonsWidth - fontMetrics.bottom - fontMetrics.top) / 2;
+
         FrameLayout.LayoutParams paramsForJRocker = ( FrameLayout.LayoutParams)getLayoutParams();
         int realWidth=2*padRadius+2*rockerRadius;
         if(paramsForJRocker==null)
@@ -97,12 +100,12 @@ public class JRocker extends View  {
             paramsForJRocker.height = realWidth;
             paramsForJRocker.width = realWidth;
         }
-        if(fireBitmap==null) {
-            fireBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.fire);
-            Matrix matrix = new Matrix();
-            matrix.postScale((float)actionButtonsWidth / fireBitmap.getWidth(), (float)actionButtonsWidth / fireBitmap.getHeight());
-            fireBitmap = Bitmap.createBitmap(fireBitmap, 0, 0, fireBitmap.getWidth(), fireBitmap.getHeight(), matrix, true);
-        }
+//        if(fireBitmap==null) {
+//            fireBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.fire);
+//            Matrix matrix = new Matrix();
+//            matrix.postScale((float)actionButtonsWidth / fireBitmap.getWidth(), (float)actionButtonsWidth / fireBitmap.getHeight());
+//            fireBitmap = Bitmap.createBitmap(fireBitmap, 0, 0, fireBitmap.getWidth(), fireBitmap.getHeight(), matrix, true);
+//        }
 
         //在这里，新版系统必须重新setLayoutParams才能成功调整,19不用，还是要加。。。
         this.setLayoutParams(paramsForJRocker);
@@ -147,7 +150,6 @@ public class JRocker extends View  {
         super.onDraw(canvas);
         canvas.drawCircle( padCircleCenter.x, padCircleCenter.y,padRadius, paintForPad);
         canvas.drawCircle( rockerCircleCenter.x, rockerCircleCenter.y,rockerRadius, paintForRocker);
-
     }
 
 

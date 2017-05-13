@@ -1,18 +1,19 @@
-package com.jedi.wolf_and_hunter.MyViews;
+package com.jedi.wolf_and_hunter.myViews;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Point;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 
-import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
 import com.jedi.wolf_and_hunter.utils.MyMathsUtils;
 import com.jedi.wolf_and_hunter.utils.ViewUtils;
+
+import java.util.Date;
 
 /**
  * Created by Administrator on 2017/3/29.
@@ -26,8 +27,8 @@ public class RightRocker extends JRocker  {
 
     public RightRocker(Context context, AttributeSet attrs) {
         super(context, attrs);
-        actionButtonLeft=0;
-        actionButtonTop=0;
+//        actionButtonLeft=0;
+//        actionButtonTop=0;
         FrameLayout.LayoutParams params=( FrameLayout.LayoutParams)getLayoutParams();
         params.gravity= Gravity.TOP | Gravity.RIGHT;
     }
@@ -42,22 +43,23 @@ public class RightRocker extends JRocker  {
         {
             case MotionEvent.ACTION_DOWN:
 
-                if(MyMathsUtils.isInRECT(actionButtonLeft,actionButtonTop
-                        ,actionButtonLeft+actionButtonsWidth,actionButtonTop+actionButtonsWidth
-                        ,new Point(x,y))){
-                    readyToFire=true;
-                }
-                else if(MyMathsUtils.isInCircle(rockerCircleCenter,rockerRadius,new Point(x,y))) {
+//                if(MyMathsUtils.isInRECT(actionButtonLeft,actionButtonTop
+//                        ,actionButtonLeft+actionButtonsWidth,actionButtonTop+actionButtonsWidth
+//                        ,new Point(x,y))){
+//                    readyToFire=true;
+//                }
+//                else
+                    if(MyMathsUtils.isInCircle(rockerCircleCenter,rockerRadius,new Point(x,y))) {
                     isHoldingRocker = true;
                     startCenterX=x;
                     startCenterY=y;
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                if(readyToFire){
-                    GameBaseAreaActivity.myCharacter.judgeFire();
-                    readyToFire=false;
-                }
+//                if(readyToFire){
+//                    GameBaseAreaActivity.myCharacter.judgeAttack();
+//                    readyToFire=false;
+//                }
                 isHoldingRocker=false;
                 distance=0;
                 rockerCircleCenter.set(padCircleCenter.x,padCircleCenter.y);
@@ -99,7 +101,15 @@ public class RightRocker extends JRocker  {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawBitmap(fireBitmap,0,0,null);
+
+//        canvas.drawBitmap(fireBitmap,0,0,null);
+//        if(bindingCharacter.attackCount<bindingCharacter.maxAttackCount&&bindingCharacter.reloadAttackStartTime!=0){
+//            float sweepAngle=360*((new Date().getTime()-bindingCharacter.reloadAttackStartTime)/bindingCharacter.reloadAttackNeedTime);
+//            if (sweepAngle>360)
+//                sweepAngle=359;
+//            canvas.drawArc(new RectF(actionButtonLeft,actionButtonTop,actionButtonLeft+fireBitmap.getWidth(),actionButtonTop+fireBitmap.getHeight()),0,sweepAngle,true,normalPaint);
+//        }
+//        canvas.drawText(new Integer(bindingCharacter.attackCount).toString(),5,baselineY,normalPaint);
 
     }
 }

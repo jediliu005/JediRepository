@@ -1,10 +1,9 @@
-package com.jedi.wolf_and_hunter.MyViews.landform;
+package com.jedi.wolf_and_hunter.myViews.landform;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 
-import com.jedi.wolf_and_hunter.MyViews.characters.BaseCharacterView;
+import com.jedi.wolf_and_hunter.myViews.characters.BaseCharacterView;
 
 /**
  * Created by Administrator on 2017/4/24.

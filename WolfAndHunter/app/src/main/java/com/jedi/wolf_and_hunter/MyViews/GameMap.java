@@ -1,4 +1,4 @@
-package com.jedi.wolf_and_hunter.MyViews;
+package com.jedi.wolf_and_hunter.myViews;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -7,15 +7,13 @@ import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Shader;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.jedi.wolf_and_hunter.MyViews.landform.Landform;
-import com.jedi.wolf_and_hunter.MyViews.landform.TallGrassland;
+import com.jedi.wolf_and_hunter.myViews.landform.Landform;
+import com.jedi.wolf_and_hunter.myViews.landform.TallGrassland;
 import com.jedi.wolf_and_hunter.R;
 
 /**

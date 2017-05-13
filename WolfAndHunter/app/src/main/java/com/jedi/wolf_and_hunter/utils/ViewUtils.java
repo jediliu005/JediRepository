@@ -154,6 +154,7 @@ public class ViewUtils {
     }
 
     public static DisplayMetrics getWindowsDisplayMetrics() {
+
         return windowsDisplayMetrics;
     }
 

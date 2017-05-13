@@ -12,16 +12,26 @@
 
 
 
-    <com.jedi.wolf_and_hunter.MyViews.LeftRocker
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/rocker_left"
-        android:layout_gravity="bottom|left"
-        />
-    <com.jedi.wolf_and_hunter.MyViews.RightRocker
+    <com.jedi.wolf_and_hunter.myViews.LeftRocker
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/rocker_left"
+    android:layout_gravity="bottom|left"
+    />
+    <com.jedi.wolf_and_hunter.myViews.RightRocker
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/rocker_right"
         android:layout_gravity="bottom|right"
+        />
+    <com.jedi.wolf_and_hunter.myViews.AttackButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/attack_button_left"
+        />
+    <com.jedi.wolf_and_hunter.myViews.AttackButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/attack_button_right"
         />
 </FrameLayout>
