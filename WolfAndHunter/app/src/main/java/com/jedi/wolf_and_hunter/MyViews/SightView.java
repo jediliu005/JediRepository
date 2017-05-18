@@ -18,6 +18,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
 import com.jedi.wolf_and_hunter.myObj.MyVirtualWindow;
 import com.jedi.wolf_and_hunter.myViews.characters.BaseCharacterView;
 import com.jedi.wolf_and_hunter.R;
@@ -57,7 +58,7 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
     public int sightSize;
     //以下为绘图杂项
 
-    public boolean isStop=true;
+    public static boolean isStop=true;
     public Bitmap sightBitmap;
     public Matrix matrix;
     public SurfaceHolder mHolder;
@@ -238,12 +239,12 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
         int newCenterY = nowCharacterCenterY + resultRelateY;
 //        mLayoutParams.leftMargin=bindingCharacter.centerX+resultRelateX-this.getWidth()/2;
 //        mLayoutParams.topMargin=bindingCharacter.centerY+resultRelateY-this.getHeight()/2;
-
-        nowLeft = newCenterX - getWidth() / 2;
-        nowTop = newCenterY - getHeight() / 2;
-        nowRight = nowLeft + getWidth();
-        nowBottom = nowTop + getHeight();
-
+        if(isHidden==false) {
+            nowLeft = newCenterX - getWidth() / 2;
+            nowTop = newCenterY - getHeight() / 2;
+            nowRight = nowLeft + getWidth();
+            nowBottom = nowTop + getHeight();
+        }
 
     }
 
@@ -411,21 +412,14 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
         this.virtualWindow.targetTop=windowCenterY-windowHeight/2;
         this.virtualWindow.targetBottom=virtualWindow.top+windowHeight;
 
-        //这模式下sight隐藏，但跟随character
-        this.nowLeft=(bindingCharacter.nowLeft+bindingCharacter.nowRight+sightSize)/2;
-        this.nowRight=this.nowLeft+getWidth();
-        this.nowTop=(bindingCharacter.nowTop+bindingCharacter.nowBottom+sightSize)/2;
-        this.nowBottom=this.nowTop+getHeight();
-
-
-
-
-
-
-
-        if (nowBottom > ((FrameLayout) getParent()).getHeight()) {
-            Log.i("", "");
+        if(isHidden==false) {
+            //这模式下sight隐藏，但跟随character
+            this.nowLeft = (bindingCharacter.nowLeft + bindingCharacter.nowRight + sightSize) / 2;
+            this.nowRight = this.nowLeft + getWidth();
+            this.nowTop = (bindingCharacter.nowTop + bindingCharacter.nowBottom + sightSize) / 2;
+            this.nowBottom = this.nowTop + getHeight();
         }
+
     }
 
     public void movingNearCharacter() {
@@ -483,22 +477,6 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
 
 
 
-
-
-
-
-    @Deprecated
-    public void offsetWindow(int windowLeft, int windowTop) {
-        FrameLayout parent = (FrameLayout) this.getParent();
-        FrameLayout.LayoutParams parentParams = (FrameLayout.LayoutParams) parent.getLayoutParams();
-
-        int parentNewLeft = -windowLeft;
-        int parentNewTop = -windowTop;
-        parentParams.leftMargin = parentNewLeft;
-        parentParams.topMargin = parentNewTop;
-        parent.setLayoutParams(parentParams);
-
-    }
 
 
     @Override
@@ -571,8 +549,7 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
 
         mLayoutParams.height = sightBitmapHeight;
         mLayoutParams.width = sightBitmapWidth;
-        centerX = sightBitmapHeight / 2;
-        centerY = sightBitmapWidth / 2;
+
         this.setLayoutParams(mLayoutParams);
 
 //        FrameLayout parent = (FrameLayout) this.getParent();
@@ -580,8 +557,12 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
 //        virtualWindow.top = -parent.getTop();
 //        virtualWindow.right =  windowWidth- parent.getLeft();
 //        virtualWindow.bottom =  windowHeight- parent.getTop();
-        Thread drawThread = new Thread(new SightDraw());
-        drawThread.start();
+        if(isHidden==false) {
+            centerX = sightBitmapHeight / 2;
+            centerY = sightBitmapWidth / 2;
+            Thread drawThread = new Thread(new SightDraw());
+            drawThread.start();
+        }
     }
 
     class SightDraw implements Runnable {
@@ -589,9 +570,8 @@ public class SightView extends SurfaceView implements SurfaceHolder.Callback {
 
         @Override
         public void run() {
-            isStop = false;
 
-            while (!isStop) {
+            while (GameBaseAreaActivity.isStop==false&&isStop==false) {
 
                 Canvas canvas = getHolder().lockCanvas();
                 try {

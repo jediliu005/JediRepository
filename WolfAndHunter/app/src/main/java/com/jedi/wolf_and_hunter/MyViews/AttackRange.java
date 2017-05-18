@@ -41,6 +41,7 @@ public class AttackRange extends View {
         super(context);
         bindingCharacter=character;
         character.attackRange=this;
+
         init();
     }
 

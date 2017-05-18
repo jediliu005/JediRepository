@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.jedi.wolf_and_hunter.myObj.MyVirtualWindow;
@@ -85,7 +86,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     public Matrix matrixForCP;
     int windowWidth;
     int windowHeight;
-    public boolean isStop;
+    public boolean isStop=false;
     public Bitmap arrowBitMap;
     public Matrix matrixForArrow;
     public SurfaceHolder mHolder;
@@ -101,7 +102,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     public MyVirtualWindow virtualWindow;
     public boolean isDead = false;
     public long deadTime;
-    public boolean isForceToBeSaw = false;//注意！这属性只针对玩家视觉，对AI判行为无效
+    public boolean isForceToBeSawByMe = false;//注意！这属性只针对本机玩家视觉，对AI判行为无效
     public HashSet<Integer> seeMeTeamIDs;
     public GameBaseAreaActivity.GameHandler gameHandler;
     public HashSet<BaseCharacterView> theyDiscoverMe;
@@ -139,18 +140,47 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
             characterParams.leftMargin = nowLeft;
             characterParams.topMargin = nowTop;
 
-            centerX=nowLeft+getWidth()/2;
-            centerY=nowTop+getHeight()/2;
+            centerX=nowLeft+characterBodySize/2;
+            centerY=nowTop+characterBodySize/2;
             new AttackRange(getContext(), this);
             new ViewRange(getContext(), this);
             this.setLayoutParams(characterParams);
+            if(viewRange!=null) {
+                viewRange.centerX = this.centerX;
+                viewRange.centerY = this.centerY;
+                viewRange.nowLeft=centerX-nowViewRadius;
+                viewRange.nowRight=centerX+nowViewRadius;
+                viewRange.nowTop=centerY-nowViewRadius;
+                viewRange.nowBottom=centerY+nowViewRadius;
+                FrameLayout.LayoutParams layoutParams=(FrameLayout.LayoutParams) viewRange.getLayoutParams();
+                layoutParams.leftMargin=centerX-nowViewRadius;
+                layoutParams.topMargin=centerY-nowViewRadius;
+                viewRange.setLayoutParams(layoutParams);
+            }
+            if(attackRange!=null) {
+                attackRange.centerX = this.centerX;
+                attackRange.centerY = this.centerY;
+                attackRange.nowLeft=centerX-nowAttackRadius;
+                attackRange.nowRight=centerX+nowAttackRadius;
+                attackRange.nowTop=centerY-nowAttackRadius;
+                attackRange.nowBottom=centerY+nowAttackRadius;
+                FrameLayout.LayoutParams layoutParams=(FrameLayout.LayoutParams) attackRange.getLayoutParams();
+                layoutParams.leftMargin=centerX-nowAttackRadius;
+                layoutParams.topMargin=centerY-nowAttackRadius;
+                attackRange.setLayoutParams(layoutParams);
+            }
+
+
+
+            }
 
         }
 
 
 
 
-    }
+
+
 
     public BaseCharacterView(Context context) {
         super(context);
@@ -171,10 +201,8 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
     private void init() {
         theyDiscoverMe = new HashSet<BaseCharacterView>();
         seeMeTeamIDs = new HashSet<Integer>();
-        ViewUtils.initWindowParams(getContext());
-        DisplayMetrics dm = ViewUtils.windowsDisplayMetrics;
-        windowHeight = dm.heightPixels;
-        windowWidth = dm.widthPixels;
+        windowWidth = MyVirtualWindow.getWindowWidth(getContext());
+        windowHeight = MyVirtualWindow.getWindowHeight(getContext());
         characterBodySize = 60;
         mHolder = getHolder();
         mHolder.addCallback(this);
@@ -260,10 +288,13 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 //        }
 //        mLayoutParams.leftMargin = nowLeft;
 //        mLayoutParams.topMargin = nowTop;
-        centerX = nowLeft + (characterBodySize) / 2;
-        centerY = nowTop + (characterBodySize) / 2;
+        if(nowLeft>=0) {
+            centerX = nowLeft + (characterBodySize) / 2;
+        }
+        if(nowTop>=0) {
+            centerY = nowTop + (characterBodySize) / 2;
+        }
         this.setLayoutParams(mLayoutParams);
-        this.invalidate();
         new AttackRange(getContext(), this);
         new ViewRange(getContext(), this);
 
@@ -426,11 +457,18 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         }
     }
 
+    /**
+     * 本方法仅为myCharacter所用，ai不应使用
+     * @param otherCharacter
+     */
     public void changeOtherCharacterState(BaseCharacterView otherCharacter) {
         //处理隐身
 
         boolean isInViewRange = isInViewRange(otherCharacter, nowViewRadius);
         boolean isDiscoverByMe = false;
+        if(otherCharacter.teamID==teamID)
+            return;
+
         //在基本可视范围内
         if (isInViewRange) {
             //对方没有隐藏，直接可见
@@ -454,18 +492,18 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
         }
 
 
-        if (isDiscoverByMe == true) {//处理闯入我视觉范围的情况
+        if (isDiscoverByMe == true) {//处理闯入本角色视觉范围的情况
             if (otherCharacter.seeMeTeamIDs.contains(this.teamID)) {//已经被本队发现
-                if (otherCharacter.theyDiscoverMe.contains(this) == false) {//第一发现人不是自己
+                if (otherCharacter.theyDiscoverMe.contains(this) == false) {//第一发现人不是本角色
                     otherCharacter.theyDiscoverMe.add(this);
                 }
             } else {//自己是第一发现人
                 otherCharacter.seeMeTeamIDs.add(this.teamID);
                 otherCharacter.theyDiscoverMe.add(this);
 
-                otherCharacter.isForceToBeSaw = true;
+                otherCharacter.isForceToBeSawByMe = true;
             }
-        } else {//处理不在我视觉范围内的情况
+        } else {//处理不在本角色视觉范围内的情况
             if (otherCharacter.seeMeTeamIDs.contains(this.teamID)) {//已经被我队发现
                 if (otherCharacter.theyDiscoverMe.contains(this)) {
                     otherCharacter.theyDiscoverMe.remove(this);
@@ -479,8 +517,9 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
                 }
                 if (hasMyTeammate == false) {
                     otherCharacter.seeMeTeamIDs.remove(this.teamID);
-                    otherCharacter.isForceToBeSaw = false;
-
+                    otherCharacter.isForceToBeSawByMe = false;
+                }else{
+                    otherCharacter.isForceToBeSawByMe = true;
                 }
             }
 
@@ -603,21 +642,24 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
         @Override
         public void run() {
-            isStop = false;
             int i = 0;
 
-            while (!isStop) {
+            if(isMyCharacter==false){
+                Log.i("","");
+            }
+            while (GameBaseAreaActivity.isStop==false&&isStop==false) {
                 SurfaceHolder holder=getHolder();
                 if(holder==null)
                     continue;
                 Canvas canvas = null;
                 try {
                     canvas = holder.lockCanvas();
-                }catch (Exception e){
-                    isStop=true;
-                    break;
-                }
-                try {
+                    if(canvas==null){
+                        isStop=true;
+                        break;
+                    }
+
+
 
                     canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//清除屏幕
                     i++;
@@ -647,7 +689,7 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
                         }
                     } else {//不是队友
-                        if (isForceToBeSaw) {
+                        if (isForceToBeSawByMe) {
                             canvas.drawBitmap(characterPic, (int) (characterBodySize * 0.15), (int) (characterBodySize * 0.15), normalPaint);
                             canvas.rotate(nowFacingAngle, characterBodySize / 2, characterBodySize / 2);
 //                        canvas.drawRect(0, 0, characterBodySize, characterBodySize, normalPaint);
@@ -668,8 +710,10 @@ public class BaseCharacterView extends SurfaceView implements SurfaceHolder.Call
 
 
                 } catch (Exception e) {
+                    isStop=true;
                     e.printStackTrace();
                 } finally {
+
                     if (canvas != null) {
                         getHolder().unlockCanvasAndPost(canvas);
                     }

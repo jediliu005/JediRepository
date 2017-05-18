@@ -54,7 +54,10 @@ public class BaseAI extends TimerTask {
                 @Override
                 public void run() {
                     while (true) {
-                        if (bindingCharacter == null) {
+                        if(GameBaseAreaActivity.isStop==true)
+                            break;
+
+                        if (bindingCharacter == null||bindingCharacter.isDead) {
                             try {
                                 Thread.sleep(300);
                             } catch (InterruptedException e) {
@@ -106,7 +109,8 @@ public class BaseAI extends TimerTask {
     @Override
     public void run() {
         addFacingThread();
-
+        if(GameBaseAreaActivity.isStop)
+            return;
         decideWhatToDo();
         synchronized (bindingCharacter) {
             if (bindingCharacter.attackCount == 0)
@@ -141,6 +145,7 @@ public class BaseAI extends TimerTask {
             if(character.isDead==true) {
                 continue;
             }
+
             isInViewRange = bindingCharacter.isInViewRange(character, bindingCharacter.nowViewRadius);
 
             if (isInViewRange == true ) {
@@ -281,6 +286,7 @@ public class BaseAI extends TimerTask {
         targetLastY = targetCharacter.centerY;
         int relateX = targetCharacter.centerX - bindingCharacter.centerX;
         int relateY = targetCharacter.centerY - bindingCharacter.centerY;
+        double distance=Math.sqrt(relateX*relateX+relateY*relateY);
         float angle = MyMathsUtils.getAngleBetweenXAxus(relateX, relateY);
         targetFacingAngle = angle;
 
@@ -291,8 +297,12 @@ public class BaseAI extends TimerTask {
         } else {
             float startAngle = relateAngle - chanceAngle;
             float endAngle = relateAngle + chanceAngle;
-            if (Math.abs(relateAngle) < chanceAngle)
+            if (Math.abs(relateAngle) < chanceAngle&&bindingCharacter.nowAttackRadius>distance)
                 isChance = true;
+            else if(bindingCharacter.nowAttackRadius<distance) {
+                bindingCharacter.offX = relateX;
+                bindingCharacter.offY = relateY;
+            }
         }
 
 
@@ -301,6 +311,10 @@ public class BaseAI extends TimerTask {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+            if (bindingCharacter == null||bindingCharacter.isDead==true) {
+                reset();
+                return;
             }
             bindingCharacter.judgeAttack();
         }

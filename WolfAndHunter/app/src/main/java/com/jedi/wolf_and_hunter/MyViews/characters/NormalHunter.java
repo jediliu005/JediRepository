@@ -5,11 +5,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.os.Message;
 import android.util.AttributeSet;
 
 import com.jedi.wolf_and_hunter.R;
 import com.jedi.wolf_and_hunter.activities.GameBaseAreaActivity;
 import com.jedi.wolf_and_hunter.myObj.MyVirtualWindow;
+import com.jedi.wolf_and_hunter.myViews.Trajectory;
 import com.jedi.wolf_and_hunter.utils.MyMathsUtils;
 
 import java.util.Date;
@@ -21,7 +24,7 @@ import java.util.Date;
 public class NormalHunter extends BaseCharacterView {
     private static final String TAG = "NormalHunter";
     private final static String characterName="普通猎人";
-    private final static int defaultMaxAttackCount=2;
+    private final static int defaultMaxAttackCount=99;
     private final static int reloadAttackNeedTime=3000;
     public  final static int defaultAngleChangSpeed=2;
     private int bolletWidth=1;
@@ -34,7 +37,6 @@ public class NormalHunter extends BaseCharacterView {
 
     public NormalHunter(Context context) {
         super(context);
-        this.virtualWindow=virtualWindow;
         initNormalHunter();
     }
     /**
@@ -94,7 +96,7 @@ public class NormalHunter extends BaseCharacterView {
     }
     @Override
     public void judgeAttack() {
-        if(attackCount<=0||isReloading){
+        if(attackCount<=0||isReloading||isDead){
             return;
         }
         super.judgeAttack();
@@ -134,9 +136,21 @@ public class NormalHunter extends BaseCharacterView {
                 }
             }
         }
-//        if(attackCount==0){
-//            reloadAttackCount();
-//        }
+        double cosAlpha=Math.cos(Math.toRadians(nowFacingAngle));
+//        double cosAlpha=Math.cos(Math.toRadians(30));
+        double endX=cosAlpha*nowAttackRadius;
+
+        double endY=Math.sqrt(nowAttackRadius*nowAttackRadius-endX*endX);
+        if(nowFacingAngle>=180)
+            endY=-endY;
+        endX=endX+centerX;
+        endY=endY+centerY;
+        Point fromPoint=new Point(centerX,centerY);
+        Point toPoint=new Point((int)endX,(int)endY);
+        Trajectory trajectory=new Trajectory(getContext(),fromPoint,toPoint);
+        Message msg=gameHandler.obtainMessage(GameBaseAreaActivity.GameHandler.ADD_TRAJECTORY,trajectory);
+        gameHandler.sendMessage(msg);
+
     }
 
 }
